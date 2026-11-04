@@ -63,6 +63,23 @@ wa.on('account_status', (data) => {
   });
 });
 
+wa.on('pairing_link_updated', (link) => {
+  broadcast({ type: 'pairing_link_updated', link });
+});
+
+wa.on('pairing_link_completed', (data) => {
+  broadcast({
+    type: 'pairing_link_completed',
+    link: data.link,
+    account: data.account,
+    accounts: wa.getAllAccounts()
+  });
+});
+
+wa.on('pairing_links_updated', (links) => {
+  broadcast({ type: 'pairing_links_updated', links });
+});
+
 wa.on('accounts_updated', (accounts) => {
   broadcast({
     type: 'accounts_updated',
@@ -302,6 +319,62 @@ app.post('/api/accounts/:id/pairing-code', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// ==================== TAUTAN PENAUTAN WHATSAPP BARU (CONNECT VIA LINK) ====================
+// Halaman untuk penerima/karyawan yang klik link penautan di HP
+app.get(['/connect/:token', '/tautkan/:token'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'connect.html'));
+});
+
+// API Info Link untuk halaman /connect/:token
+app.get('/api/connect/:token', (req, res) => {
+  const link = wa.getPairingLinkByToken(req.params.token);
+  if (!link) {
+    return res.status(404).json({ ok: false, error: 'Tautan penautan tidak ditemukan atau telah kedaluwarsa' });
+  }
+  res.json({ ok: true, link });
+});
+
+// API Permintaan Pairing Code oleh pemegang HP di /connect/:token
+app.post('/api/connect/:token/pair', async (req, res) => {
+  try {
+    const { phone } = req.body;
+    const result = await wa.startPairingForLink(req.params.token, phone);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// API Polling Status untuk halaman /connect/:token
+app.get('/api/connect/:token/status', (req, res) => {
+  const status = wa.getPairingLinkStatus(req.params.token);
+  res.json(status);
+});
+
+// API CRUD Pairing Links untuk Admin Dashboard
+app.get('/api/pairing-links', (req, res) => {
+  res.json({ ok: true, links: wa.getAllPairingLinks() });
+});
+
+app.post('/api/pairing-links', (req, res) => {
+  try {
+    const { accountName, targetPhone, expiresHours } = req.body;
+    const link = wa.createPairingLink({ accountName, targetPhone, expiresHours });
+    res.json({ ok: true, link });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.delete('/api/pairing-links/:id', async (req, res) => {
+  try {
+    const ok = await wa.deletePairingLink(req.params.id);
+    res.json({ ok });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.get('/api/accounts', (req, res) => {
   res.json(wa.getAllAccounts());
 });

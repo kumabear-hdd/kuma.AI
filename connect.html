@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Tautkan Akun WhatsApp - Kuma Multi-Account</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --wa: #25D366;
+      --wa-dark: #128C7E;
+      --wa-deep: #075E54;
+      --bg: #0b141a;
+      --card-bg: #111b21;
+      --card-border: #222d34;
+      --ink: #e9edef;
+      --muted: #8696a0;
+      --line: #202c33;
+      --blue: #53bdeb;
+      --accent: #00a884;
+      --r-md: 16px;
+      --r-sm: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 16px;
+      line-height: 1.5;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 460px;
+      margin: 0 auto;
+    }
+
+    .brand-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .brand-logo-wrap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 58px;
+      height: 58px;
+      background: linear-gradient(135deg, #25D366, #128C7E);
+      border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(37, 211, 102, 0.28);
+      margin-bottom: 14px;
+    }
+
+    .brand-logo-wrap svg {
+      width: 32px;
+      height: 32px;
+      fill: #fff;
+    }
+
+    .brand-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+
+    .brand-sub {
+      font-size: 13.5px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--r-md);
+      padding: 24px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #25D366, #53bdeb);
+    }
+
+    .acc-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 168, 132, 0.12);
+      border: 1px solid rgba(0, 168, 132, 0.3);
+      color: #25D366;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .heading {
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .desc {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    /* Form input */
+    .field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+
+    .input-group {
+      display: flex;
+      align-items: center;
+      background: #0b141a;
+      border: 1.5px solid var(--line);
+      border-radius: var(--r-sm);
+      padding: 0 14px;
+      transition: all 0.2s ease;
+      margin-bottom: 18px;
+    }
+
+    .input-group:focus-within {
+      border-color: var(--wa);
+      box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.15);
+    }
+
+    .input-prefix {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+      padding-right: 8px;
+      border-right: 1px solid var(--line);
+      margin-right: 10px;
+    }
+
+    .input-field {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-family: inherit;
+      font-size: 15px;
+      padding: 13px 0;
+      letter-spacing: 0.02em;
+    }
+
+    .input-field::placeholder {
+      color: #536471;
+    }
+
+    .btn-main {
+      width: 100%;
+      background: var(--wa);
+      color: #0b141a;
+      border: none;
+      border-radius: var(--r-sm);
+      padding: 14px 18px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(37, 211, 102, 0.3);
+    }
+
+    .btn-main:hover {
+      background: #20ba5a;
+      transform: translateY(-1px);
+    }
+
+    .btn-main:active {
+      transform: translateY(0);
+    }
+
+    .btn-main:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Pairing code box */
+    .pairing-box {
+      text-align: center;
+      background: #0b141a;
+      border: 1.5px dashed rgba(37, 211, 102, 0.4);
+      border-radius: var(--r-sm);
+      padding: 18px 14px;
+      margin-bottom: 18px;
+    }
+
+    .pairing-code-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: 6px;
+      color: #25D366;
+      margin: 8px 0;
+      user-select: all;
+    }
+
+    .btn-copy {
+      background: #202c33;
+      color: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 7px 16px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-copy:hover {
+      background: #2a3942;
+      border-color: #3b4a54;
+    }
+
+    /* Steps list */
+    .steps-card {
+      background: rgba(32, 44, 51, 0.4);
+      border: 1px solid var(--line);
+      border-radius: var(--r-sm);
+      padding: 14px 16px;
+      margin-bottom: 16px;
+    }
+
+    .steps-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #e9edef;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 12.8px;
+      color: var(--muted);
+      margin-bottom: 9px;
+      line-height: 1.45;
+    }
+
+    .step-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .step-num {
+      width: 20px;
+      height: 20px;
+      background: rgba(37, 211, 102, 0.18);
+      color: #25D366;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .step-item b {
+      color: #e9edef;
+    }
+
+    /* Pulsing status indicator */
+    .pulse-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      padding: 8px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: #25D366;
+      border-radius: 50%;
+      animation: pulse 1.6s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.85); opacity: 0.4; }
+      50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 10px rgba(37, 211, 102, 0.7); }
+      100% { transform: scale(0.85); opacity: 0.4; }
+    }
+
+    /* Success state */
+    .success-box {
+      text-align: center;
+      padding: 16px 0;
+    }
+
+    .success-icon-wrap {
+      width: 72px;
+      height: 72px;
+      background: rgba(37, 211, 102, 0.15);
+      border: 2px solid #25D366;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 18px;
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .success-icon-wrap svg {
+      width: 38px;
+      height: 38px;
+      stroke: #25D366;
+      stroke-width: 3;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .success-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .success-phone-chip {
+      display: inline-block;
+      background: #202c33;
+      border: 1px solid #2a3942;
+      color: #25D366;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      margin: 10px 0 14px;
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid rgba(11, 20, 26, 0.3);
+      border-top-color: #0b141a;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #25D366;
+      color: #0b141a;
+      padding: 10px 18px;
+      border-radius: 24px;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* QR alternative tab */
+    .toggle-qr-link {
+      display: inline-block;
+      font-size: 12px;
+      color: var(--blue);
+      text-decoration: none;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    .toggle-qr-link:hover {
+      text-decoration: underline;
+    }
+
+    .qr-container {
+      display: none;
+      text-align: center;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .qr-container img {
+      width: 190px;
+      height: 190px;
+      background: #fff;
+      padding: 10px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 11.5px;
+      color: #536471;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="brand-header">
+      <div class="brand-logo-wrap">
+        <svg viewBox="0 0 24 24">
+          <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67Z"/>
+        </svg>
+      </div>
+      <h1 class="brand-title">Kuma WhatsApp Admin</h1>
+      <p class="brand-sub">Penautan Akun WhatsApp Baru ke Dashboard</p>
+    </div>
+
+    <!-- Main Card -->
+    <div class="card" id="main-card">
+      
+      <!-- Loading State -->
+      <div id="state-loading" style="text-align:center;padding:30px 0">
+        <div class="spinner" style="width:28px;height:28px;margin:0 auto 14px;border-top-color:var(--wa)"></div>
+        <div style="font-size:13.5px;color:var(--muted)">Memeriksa tautan penautan...</div>
+      </div>
+
+      <!-- Error State -->
+      <div id="state-error" style="display:none;text-align:center;padding:20px 0">
+        <div style="font-size:42px;margin-bottom:12px">⚠️</div>
+        <div class="heading" id="error-title">Tautan Tidak Ditemukan</div>
+        <div class="desc" id="error-desc">Tautan ini tidak valid, telah dihapus, atau sudah kedaluwarsa. Silakan minta admin membuat tautan baru.</div>
+      </div>
+
+      <!-- State 1: Input Nomor WhatsApp -->
+      <div id="state-input" style="display:none">
+        <div class="acc-tag">
+          <span>🏷️ Akun Target:</span>
+          <b id="lbl-acc-name">Admin CS</b>
+        </div>
+        <div class="heading">Tautkan WhatsApp Anda</div>
+        <div class="desc">
+          Masukkan nomor WhatsApp Anda untuk mendapatkan <b>kode pairing 8 digit</b>. Pesan pelanggan di akun ini akan dapat dipantau di dashboard tim.
+        </div>
+
+        <form id="form-pair">
+          <label class="field-label" for="input-phone">Nomor WhatsApp Anda</label>
+          <div class="input-group">
+            <span class="input-prefix">🇮🇩 +62</span>
+            <input type="tel" id="input-phone" class="input-field" placeholder="812-3456-7890" required autocomplete="tel" autofocus />
+          </div>
+
+          <button type="submit" class="btn-main" id="btn-submit-phone">
+            <span id="btn-text">📲 Hubungkan WhatsApp Saya</span>
+            <div class="spinner" id="btn-spinner" style="display:none"></div>
+          </button>
+        </form>
+      </div>
+
+      <!-- State 2: Menampilkan Kode Pairing -->
+      <div id="state-pairing" style="display:none">
+        <div class="acc-tag">
+          <span>🏷️</span>
+          <span id="lbl-acc-name-pairing">Admin CS</span>
+          <span>&bull;</span>
+          <span id="lbl-phone-pairing" style="font-family:'JetBrains Mono',monospace"></span>
+        </div>
+
+        <div class="heading">Ketikkan Kode Ini di WhatsApp Anda</div>
+        <div class="desc">Buka WhatsApp di ponsel Anda dan masukkan kode 8-digit di bawah ini:</div>
+
+        <div class="pairing-box">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em">Kode Penautan 8-Digit</div>
+          <div class="pairing-code-display" id="pairing-code-val">---- ----</div>
+          <button type="button" class="btn-copy" id="btn-copy-code">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            <span id="btn-copy-text">Salin Kode</span>
+          </button>
+        </div>
+
+        <!-- 4 Langkah Singkat -->
+        <div class="steps-card">
+          <div class="steps-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Panduan 4 Langkah di WhatsApp Anda
+          </div>
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <div>Buka aplikasi <b>WhatsApp</b> di HP Anda.</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <div>Ketuk <b>Menu (⋮)</b> di Android atau <b>Pengaturan (⚙)</b> di iPhone &rarr; pilih <b>Perangkat Tertaut</b>.</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">3</div>
+            <div>Ketuk <b>Tautkan Perangkat</b>, lalu pilih <b>"Tautkan dengan nomor telepon saja"</b> di bawah layar scanner.</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">4</div>
+            <div>Ketikkan kode 8-digit di atas: <b id="step-code-preview" style="color:#25D366;font-family:'JetBrains Mono'">--------</b></div>
+          </div>
+        </div>
+
+        <!-- QR Option -->
+        <div style="text-align:center">
+          <a class="toggle-qr-link" id="btn-toggle-qr">📷 Ingin scan QR lewat laptop/kamera? Klik di sini</a>
+          <div class="qr-container" id="qr-container">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Pindai kode QR ini dengan WhatsApp &rarr; Tautkan Perangkat:</div>
+            <img id="qr-img" src="" alt="QR Code WhatsApp" />
+          </div>
+        </div>
+
+        <div style="margin-top:16px">
+          <div class="pulse-status">
+            <div class="pulse-dot"></div>
+            <span>Menunggu konfirmasi penautan dari ponsel Anda...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- State 3: Berhasil Terhubung (Connected) -->
+      <div id="state-connected" style="display:none">
+        <div class="success-box">
+          <div class="success-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </div>
+          <div class="success-title">🎉 Berhasil Ditautkan!</div>
+          <div style="font-size:13.5px;color:var(--muted)">
+            Akun WhatsApp Anda kini telah resmi terhubung ke Dashboard Kuma.
+          </div>
+          <div class="success-phone-chip" id="connected-phone-display">+62 ...</div>
+          <div style="font-size:13px;color:#8696a0;background:#0b141a;border-radius:var(--r-sm);padding:14px;border:1px solid var(--line);line-height:1.6">
+            ✅ <b>Selesai!</b> Semua percakapan pelanggan dari akun ini sekarang dapat dipantau dan dikelola bersama tim di dashboard admin.<br>
+            Anda dapat menutup halaman ini sekarang.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="footer">
+      Kuma WhatsApp Admin Multi-Account System &bull; Aman &amp; Terenkripsi End-to-End
+    </div>
+  </div>
+
+  <div class="toast" id="toast">✓ Kode berhasil disalin!</div>
+
+  <script>
+    // Ambil token dari URL: /connect/:token atau ?token=...
+    function getTokenFromUrl() {
+      const pathParts = window.location.pathname.split('/').filter(Boolean);
+      if (pathParts.length >= 2 && (pathParts[0] === 'connect' || pathParts[0] === 'tautkan')) {
+        return pathParts[1];
+      }
+      const params = new URLSearchParams(window.location.search);
+      return params.get('token');
+    }
+
+    const token = getTokenFromUrl();
+    let currentLinkData = null;
+    let pollInterval = null;
+    let ws = null;
+    let isConnected = false;
+
+    // Toast helper
+    function showToast(text) {
+      const toast = document.getElementById('toast');
+      toast.textContent = text;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2800);
+    }
+
+    // Switch card screens
+    function showState(stateName) {
+      document.getElementById('state-loading').style.display = (stateName === 'loading') ? 'block' : 'none';
+      document.getElementById('state-error').style.display = (stateName === 'error') ? 'block' : 'none';
+      document.getElementById('state-input').style.display = (stateName === 'input') ? 'block' : 'none';
+      document.getElementById('state-pairing').style.display = (stateName === 'pairing') ? 'block' : 'none';
+      document.getElementById('state-connected').style.display = (stateName === 'connected') ? 'block' : 'none';
+    }
+
+    function showError(title, desc) {
+      document.getElementById('error-title').textContent = title;
+      document.getElementById('error-desc').textContent = desc;
+      showState('error');
+    }
+
+    // Render data
+    function applyLinkData(link) {
+      currentLinkData = link;
+      document.getElementById('lbl-acc-name').textContent = link.accountName || 'Admin CS';
+      document.getElementById('lbl-acc-name-pairing').textContent = link.accountName || 'Admin CS';
+
+      if (link.targetPhone) {
+        let p = link.targetPhone;
+        if (p.startsWith('62')) p = p.slice(2);
+        if (p.startsWith('0')) p = p.slice(1);
+        document.getElementById('input-phone').value = p;
+      }
+
+      if (link.status === 'connected') {
+        markAsConnected(link.linkedPhone || link.targetPhone);
+        return;
+      }
+
+      if (link.status === 'pairing' && link.pairingCode) {
+        showPairingCode(link.pairingCode, link.targetPhone);
+        return;
+      }
+
+      showState('input');
+    }
+
+    function showPairingCode(rawCode, phone) {
+      const formatted = rawCode ? (rawCode.match(/.{1,4}/g)?.join('-') || rawCode) : '---- ----';
+      document.getElementById('pairing-code-val').textContent = formatted;
+      document.getElementById('step-code-preview').textContent = formatted;
+      if (phone) {
+        document.getElementById('lbl-phone-pairing').textContent = '+' + phone.replace(/[^\d]/g, '');
+      }
+      showState('pairing');
+      startPollingStatus();
+    }
+
+    function markAsConnected(phone) {
+      if (isConnected) return;
+      isConnected = true;
+      if (pollInterval) clearInterval(pollInterval);
+      document.getElementById('connected-phone-display').textContent = phone || 'Nomor WhatsApp Anda';
+      showState('connected');
+    }
+
+    // Load initial link info
+    async function loadLinkInfo() {
+      if (!token) {
+        showError('Tautan Tidak Lengkap', 'Parameter token penautan tidak ditemukan pada alamat web.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/connect/${token}`);
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          showError('Tautan Tidak Valid', data.error || 'Tautan penautan ini sudah kedaluwarsa atau tidak aktif.');
+          return;
+        }
+
+        applyLinkData(data.link);
+        initWebSocket();
+      } catch (err) {
+        showError('Gagal Terhubung', 'Gagal memuat data tautan dari server. Periksa koneksi internet Anda.');
+      }
+    }
+
+    // Form submit: Minta kode pairing
+    document.getElementById('form-pair').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const phoneInput = document.getElementById('input-phone').value.trim();
+      if (!phoneInput) return;
+
+      const btn = document.getElementById('btn-submit-phone');
+      const btnText = document.getElementById('btn-text');
+      const btnSpinner = document.getElementById('btn-spinner');
+
+      btn.disabled = true;
+      btnText.textContent = 'Menyiapkan sesi...';
+      btnSpinner.style.display = 'block';
+
+      try {
+        const res = await fetch(`/api/connect/${token}/pair`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: phoneInput })
+        });
+        const data = await res.json();
+
+        if (!res.ok || !data.ok) {
+          alert(data.error || 'Gagal meminta kode penautan. Pastikan format nomor benar.');
+          btn.disabled = false;
+          btnText.textContent = '📲 Hubungkan WhatsApp Saya';
+          btnSpinner.style.display = 'none';
+          return;
+        }
+
+        if (data.status === 'connected') {
+          markAsConnected(data.phone);
+          return;
+        }
+
+        showPairingCode(data.code, data.phone);
+        if (data.qr) {
+          document.getElementById('qr-img').src = data.qr;
+        }
+      } catch (err) {
+        alert('Terjadi kesalahan jaringan saat meminta kode. Silakan coba lagi.');
+        btn.disabled = false;
+        btnText.textContent = '📲 Hubungkan WhatsApp Saya';
+        btnSpinner.style.display = 'none';
+      }
+    });
+
+    // Copy pairing code button
+    document.getElementById('btn-copy-code').addEventListener('click', async () => {
+      const code = document.getElementById('pairing-code-val').textContent.replace(/[^A-Za-z0-9]/g, '');
+      if (!code) return;
+
+      try {
+        await navigator.clipboard.writeText(code);
+        showToast('✓ Kode ' + code + ' berhasil disalin!');
+        const btnText = document.getElementById('btn-copy-text');
+        btnText.textContent = '✓ Tersalin!';
+        setTimeout(() => { btnText.textContent = 'Salin Kode'; }, 2000);
+      } catch (e) {
+        // Fallback
+        const ta = document.createElement('textarea');
+        ta.value = code;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('✓ Kode berhasil disalin!');
+      }
+    });
+
+    // Toggle QR container
+    document.getElementById('btn-toggle-qr').addEventListener('click', () => {
+      const qrBox = document.getElementById('qr-container');
+      const isHidden = qrBox.style.display === 'none' || !qrBox.style.display;
+      qrBox.style.display = isHidden ? 'block' : 'none';
+    });
+
+    // Polling fallback
+    function startPollingStatus() {
+      if (pollInterval) clearInterval(pollInterval);
+      pollInterval = setInterval(async () => {
+        if (isConnected) return;
+        try {
+          const res = await fetch(`/api/connect/${token}/status`);
+          const data = await res.json();
+          if (data && data.status === 'connected') {
+            markAsConnected(data.phone);
+          } else if (data && data.qr) {
+            document.getElementById('qr-img').src = data.qr;
+          }
+        } catch (e) {}
+      }, 2500);
+    }
+
+    // WebSocket realtime
+    function initWebSocket() {
+      const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${proto}//${window.location.host}`;
+      try {
+        ws = new WebSocket(wsUrl);
+        ws.onmessage = (event) => {
+          try {
+            const msg = JSON.parse(event.data);
+            if (msg.type === 'pairing_link_completed') {
+              if (msg.link && (msg.link.token === token || msg.link.id === token)) {
+                markAsConnected(msg.link.linkedPhone || msg.account?.phone);
+              }
+            } else if (msg.type === 'pairing_link_updated') {
+              if (msg.link && (msg.link.token === token || msg.link.id === token)) {
+                if (msg.link.status === 'connected') {
+                  markAsConnected(msg.link.linkedPhone);
+                }
+              }
+            }
+          } catch (e) {}
+        };
+      } catch (err) {}
+    }
+
+    // Mulai
+    loadLinkInfo();
+  </script>
+</body>
+</html>

@@ -903,7 +903,7 @@ input:checked + .slider:before{transform:translateX(18px)}
             <div class="account-bar-top">
               <span>Nomor Admin WA</span>
               <div style="display:flex;gap:6px">
-                <button class="btn-manage-accounts" id="btn-open-links-modal" style="color:var(--blue);background:var(--blue-soft)">🔗 Link Device</button>
+                <button class="btn-manage-accounts" id="btn-open-links-modal" style="color:var(--blue);background:var(--blue-soft)">🔗 Kirim Link Tautkan WA</button>
                 <button class="btn-manage-accounts" id="btn-open-accounts-modal">+ Nomor WA</button>
               </div>
             </div>
@@ -1119,18 +1119,18 @@ input:checked + .slider:before{transform:translateX(18px)}
   <div class="modal-card">
     <div class="modal-header">
       <div>
-        <span class="eyebrow">Multi-Akun &amp; Tautan Akses</span>
-        <h3 id="modal-main-title">Kelola Nomor &amp; Tautan Perangkat</h3>
-        <p class="modal-sub">Kelola banyak nomor WhatsApp admin dan buat link akses agar device lain langsung otomatis login.</p>
+        <span class="eyebrow">Multi-Akun WhatsApp</span>
+        <h3 id="modal-main-title">Kelola Nomor &amp; Link Penautan WhatsApp</h3>
+        <p class="modal-sub">Kelola banyak akun WhatsApp admin dan buat link penautan agar WhatsApp tim/cabang langsung terhubung ke dashboard.</p>
       </div>
       <button class="modal-close" id="accounts-modal-close" title="Tutup">&times;</button>
     </div>
 
     <!-- Modal Navigation Tabs -->
     <div class="modal-tab-bar">
-      <button class="m-tab on" id="tab-btn-accounts" data-tab="accounts">📱 Nomor WhatsApp (<span id="tab-acc-count">0</span>)</button>
-      <button class="m-tab" id="tab-btn-links" data-tab="links">🔗 Tautan Akses Link (<span id="tab-link-count">0</span>)</button>
-      <button class="m-tab" id="tab-btn-pairing" data-tab="pairing">🔢 Tautkan via Kode (Tanpa QR)</button>
+      <button class="m-tab on" id="tab-btn-accounts" data-tab="accounts">📱 Akun WhatsApp (<span id="tab-acc-count">0</span>)</button>
+      <button class="m-tab" id="tab-btn-links" data-tab="links">🔗 Kirim Link Tautkan WA (<span id="tab-link-count">0</span>)</button>
+      <button class="m-tab" id="tab-btn-pairing" data-tab="pairing">🔢 Pairing Code Manual</button>
     </div>
 
     <div class="modal-body">
@@ -1170,13 +1170,13 @@ input:checked + .slider:before{transform:translateX(18px)}
         </div>
       </div>
 
-      <!-- PANE 2: PENAUTAN MELALUI LINK (MAGIC ACCESS LINK) -->
+      <!-- PANE 2: KIRIM LINK PENAUTAN WHATSAPP (MULTI-AKUN) -->
       <div class="tab-pane" id="pane-links" style="display:none">
         <div class="info-alert">
           <div style="font-size:20px;line-height:1">🔗</div>
           <div>
-            <b>Fitur Penautan Melalui Link Langsung</b><br>
-            Kirimkan link ini ke pemegang device di tempat lain. Ketika mereka mengklik link tersebut di browser HP atau laptopnya, mereka akan <b>langsung dialihkan ke dashboard dan dianggap sudah login secara otomatis</b>!
+            <b>Fitur Kirim Link Penautan WhatsApp (Multi-Akun)</b><br>
+            Kirimkan link ini ke rekan tim, CS, atau cabang Anda. Saat mereka membuka link di HP mereka, mereka cukup menekan tombol <b>"Hubungkan WhatsApp"</b> dan memasukkan kode pairing 8 digit di aplikasi WhatsApp mereka. <b>Akun WhatsApp mereka akan langsung tertaut ke dashboard ini dan seluruh chat pelanggan dapat dipantau bersama!</b>
           </div>
         </div>
 
@@ -1193,26 +1193,27 @@ input:checked + .slider:before{transform:translateX(18px)}
             </select>
           </div>
           <div id="custom-host-input-wrap" style="display:none;margin-top:8px">
-            <input type="text" id="input-custom-host" placeholder="Contoh: https://kuma.railway.app atau https://xxxx.ngrok-free.app" style="width:100%;border:1px solid var(--line);background:#fff;border-radius:var(--r-sm);padding:7px 10px;font-size:12px;font-family:var(--mono);outline:none" oninput="onCustomHostInputChanged()" />
+            <input type="text" id="input-custom-host" placeholder="Contoh: https://automobiles-stood-represent-penny.trycloudflare.com" style="width:100%;border:1px solid var(--line);background:#fff;border-radius:var(--r-sm);padding:7px 10px;font-size:12px;font-family:var(--mono);outline:none" oninput="onCustomHostInputChanged()" />
             <div style="font-size:11px;color:var(--muted);margin-top:4px">Ketik domain publik / tunnel tanpa garis miring di akhir.</div>
           </div>
           <div id="localhost-host-warning" class="host-warning-badge" style="display:none">
             <span>💡</span>
             <div>
-              <b>Tips Akses Perangkat Lain:</b> Halaman saat ini dibuka via <code>localhost</code>. Perangkat lain di luar komputer ini tidak bisa mengakses alamat <code>localhost</code>. Silakan pilih <b>📶 WiFi / Jaringan LAN</b> jika di satu WiFi, atau gunakan <b>Hosting Publik (Railway/VPS) / Tunnel</b> agar bisa diakses dari mana saja.
+              <b>Tips Penautan dari HP Lain:</b> Halaman saat ini dibuka via <code>localhost</code>. HP rekan di luar laptop ini tidak bisa membuka link <code>localhost</code>. Silakan pilih <b>📶 WiFi / Jaringan LAN</b> jika di satu WiFi, atau gunakan <b>Cloudflare Tunnel / Hosting Publik</b> agar bisa diakses dari mana saja.
             </div>
           </div>
         </div>
 
-        <div class="sec-title" style="margin-top:16px">Buat Tautan Akses Device Baru</div>
-        <form id="form-create-link" style="display:flex;flex-direction:column;gap:8px">
-          <div style="display:grid;grid-template-columns:1fr 140px auto;gap:8px">
-            <input type="text" id="input-link-device" placeholder="Nama Perangkat (misal: HP Mas Budi, CS Maya)" required autocomplete="off" style="border:1px solid var(--line);background:var(--paper);border-radius:var(--r-sm);padding:9px 12px;font:inherit;font-size:13px;outline:none" />
-            <select id="select-link-expiry" class="select-field">
-              <option value="">Selamanya (Permanen)</option>
-              <option value="24">24 Jam</option>
+        <div class="sec-title" style="margin-top:16px">Buat Link Penautan WhatsApp Baru</div>
+        <form id="form-create-pairing-link" style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:grid;grid-template-columns:1fr 1fr 130px auto;gap:8px">
+            <input type="text" id="input-pairing-link-name" placeholder="Nama Label Akun (misal: CS Maya, Sales Jakarta)" required autocomplete="off" style="border:1px solid var(--line);background:var(--paper);border-radius:var(--r-sm);padding:9px 12px;font:inherit;font-size:13px;outline:none" />
+            <input type="tel" id="input-pairing-link-phone" placeholder="Nomor Target (opsional, misal: 08123456789)" autocomplete="off" style="border:1px solid var(--line);background:var(--paper);border-radius:var(--r-sm);padding:9px 12px;font:inherit;font-size:13px;outline:none" />
+            <select id="select-pairing-link-expiry" class="select-field">
               <option value="168">7 Hari</option>
+              <option value="24">24 Jam</option>
               <option value="720">30 Hari</option>
+              <option value="">Selamanya</option>
             </select>
             <button type="submit" class="btn-add-acc" style="white-space:nowrap">🔗 Buat Link</button>
           </div>
@@ -1221,13 +1222,13 @@ input:checked + .slider:before{transform:translateX(18px)}
         <!-- Box Hasil Tautan Baru -->
         <div class="generated-link-card" id="generated-link-card" style="display:none">
           <div class="link-card-header">
-            <span class="eyebrow" style="color:var(--green)">✓ Tautan Akses Siap Digunakan</span>
+            <span class="eyebrow" style="color:var(--green)">✓ Tautan Penautan WhatsApp Siap Dikirimkan</span>
             <span id="gen-device-name" style="font-weight:600;font-size:12px;color:var(--ink)"></span>
           </div>
 
           <!-- Clickable Link Box -->
           <div style="background:#fff;border:1px solid #86EFAC;border-radius:var(--r-sm);padding:10px 12px;margin:8px 0">
-            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Klik link di bawah ini untuk membuka langsung di tab baru:</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Kirimkan link ini ke pemilik WhatsApp agar langsung ditautkan:</div>
             <a href="#" target="_blank" id="gen-link-anchor" class="magic-link-anchor">
               <span id="gen-link-text"></span>
               <span style="font-size:13px">↗</span>
@@ -1244,14 +1245,14 @@ input:checked + .slider:before{transform:translateX(18px)}
                 📲 Kirim via WhatsApp
               </a>
               <button type="button" id="btn-open-link-direct" class="btn-open-link">
-                🚀 Buka Tautan Langsung
+                🚀 Buka Halaman Penautan
               </button>
             </div>
-            <span style="font-size:11.5px;color:var(--muted)">Buka link di HP penerima untuk otomatis login.</span>
+            <span style="font-size:11.5px;color:var(--muted)">Saat dibuka di HP, penerima tinggal memasukkan nomor dan kode pairing otomatis muncul.</span>
           </div>
         </div>
 
-        <div class="sec-title" style="margin-top:20px">Daftar Link Akses Perangkat Aktif</div>
+        <div class="sec-title" style="margin-top:20px">Daftar Link Penautan WhatsApp Aktif</div>
         <div class="links-list" id="links-list-container">
           <!-- Populated by JS -->
         </div>
@@ -1552,15 +1553,28 @@ function handleServerEvent(data) {
     updatePairingAccountsSelect();
   }
 
-  else if (data.type === 'tokens_updated') {
-    currentLinks = data.tokens || [];
+  else if (data.type === 'pairing_links_updated' || data.type === 'tokens_updated') {
+    currentLinks = data.links || data.tokens || [];
     renderLinksList();
   }
 
-  else if (data.type === 'auth_link_created') {
-    if (data.link) {
-      showGeneratedLinkCard(data.link);
+  else if (data.type === 'pairing_link_updated') {
+    fetchPairingLinks();
+  }
+
+  else if (data.type === 'pairing_link_completed') {
+    if (data.accounts) {
+      currentAccounts = data.accounts;
+      renderAccountsModal();
+      renderAccountFilterChips();
+      updateComposerAccountSelect();
+      updateAccountsBadge();
     }
+    fetchPairingLinks();
+    fetchChats();
+    const accName = data.account?.name || data.link?.accountName || 'Admin CS';
+    const accPhone = data.account?.phone || data.link?.linkedPhone || '';
+    showToast('🎉 WhatsApp Baru Berhasil Ditautkan!', `${accName} (${accPhone}) telah aktif dipantau.`);
   }
 
   else if (data.type === 'pairing_code_response' || data.type === 'pairing_code') {
@@ -1755,7 +1769,7 @@ function updatePairingAccountsSelect() {
 
 function openAccountsModal(defaultTab = 'accounts') {
   renderAccountsModal();
-  renderLinksList();
+  fetchPairingLinks();
   updatePairingAccountsSelect();
   switchModalTab(defaultTab);
   document.getElementById('accounts-modal').classList.add('is-open');
@@ -1919,8 +1933,8 @@ function renderLinksList() {
 
   if (currentLinks.length === 0) {
     container.innerHTML = `
-      <div style="padding:20px;text-align:center;color:var(--muted);background:var(--paper);border-radius:var(--r-md);font-size:12.5px">
-        Belum ada tautan akses perangkat yang dibuat. Buat link di atas untuk membagikan akses langsung ke dashboard tanpa QR!
+      <div style="padding:22px;text-align:center;color:var(--muted);background:var(--paper);border-radius:var(--r-md);font-size:12.5px">
+        Belum ada link penautan WhatsApp yang dibuat. Buat link di atas untuk mengundang nomor WA admin/CS baru tanpa perlu scan QR di tempat!
       </div>
     `;
     return;
@@ -1930,37 +1944,47 @@ function renderLinksList() {
 
   container.innerHTML = currentLinks.map(l => {
     const isExpired = Boolean(l.isExpired);
-    const fullUrl = `${baseOrigin}/join/${l.token}`;
+    const isConnected = l.status === 'connected';
+    const isPairing = l.status === 'pairing';
+    const fullUrl = `${baseOrigin}/connect/${l.token}`;
     const dateStr = new Date(l.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-    const accessedStr = l.lastAccessedAt ? new Date(l.lastAccessedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : 'Belum pernah';
+
+    let statusPill = '';
+    if (isConnected) {
+      statusPill = `<span class="status-pill open">🟢 Terhubung (${escapeHtml(l.linkedPhone || '')})</span>`;
+    } else if (isPairing) {
+      statusPill = `<span class="status-pill connecting">🔵 Sedang Pairing (Kode: ${escapeHtml(l.pairingCode || '')})</span>`;
+    } else if (isExpired) {
+      statusPill = `<span class="status-pill disconnected">Kedaluwarsa</span>`;
+    } else {
+      statusPill = `<span class="status-pill" style="background:#FEF3C7;color:#D97706">🟡 Menunggu Diklik</span>`;
+    }
 
     return `
       <div class="link-item-row" style="${isExpired ? 'opacity:.6' : ''}">
         <div class="link-item-info" style="flex:1;min-width:0">
           <div class="link-item-name">
-            <span>${escapeHtml(l.deviceName)}</span>
-            <span class="status-pill ${isExpired ? 'disconnected' : 'open'}">${isExpired ? 'Kedaluwarsa' : '🟢 Aktif'}</span>
+            <span style="font-weight:700">${escapeHtml(l.accountName)}</span>
+            ${statusPill}
           </div>
           <div style="margin-top:4px">
-            <a href="${fullUrl}" target="_blank" class="magic-link-anchor" style="font-size:11.5px" title="Klik untuk membuka tautan ini langsung di tab baru">
+            <a href="${fullUrl}" target="_blank" class="magic-link-anchor" style="font-size:11.5px" title="Klik untuk membuka halaman penautan ini langsung di tab baru">
               ${escapeHtml(fullUrl)} ↗
             </a>
           </div>
           <div class="link-item-sub">
-            Dibuat: ${dateStr} · Diakses: ${accessedStr} (${l.accessCount || 0}x)
+            Target: ${l.targetPhone ? escapeHtml(l.targetPhone) : 'Nomor diisi oleh penerima'} · Dibuat: ${dateStr}
           </div>
         </div>
         <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
-          ${!isExpired ? `
-            <button class="ghost" style="font-size:12px;padding:4px 8px;color:var(--green);font-weight:600" onclick="copyMagicLinkText('${fullUrl}', '${escapeHtml(l.deviceName)}')">
-              📋 Salin
-            </button>
-            <button class="ghost" style="font-size:12px;padding:4px 8px;color:var(--ink);font-weight:600" onclick="window.open('${fullUrl}', '_blank')">
-              🚀 Buka
-            </button>
-          ` : ''}
-          <button class="ghost danger" style="font-size:12px;padding:4px 8px" onclick="confirmRevokeLink('${l.id}', '${escapeHtml(l.deviceName)}')">
-            Cabut
+          <button class="ghost" style="font-size:12px;padding:4px 8px;color:var(--green);font-weight:600" onclick="copyPairingLinkText('${fullUrl}', '${escapeHtml(l.accountName)}')">
+            📋 Salin
+          </button>
+          <button class="ghost" style="font-size:12px;padding:4px 8px;color:var(--ink);font-weight:600" onclick="window.open('${fullUrl}', '_blank')">
+            🚀 Buka
+          </button>
+          <button class="ghost danger" style="font-size:12px;padding:4px 8px" onclick="confirmDeletePairingLink('${l.id}', '${escapeHtml(l.accountName)}')">
+            Hapus
           </button>
         </div>
       </div>
@@ -1980,81 +2004,109 @@ function showGeneratedLinkCard(linkObj) {
   if (!card) return;
 
   const baseOrigin = getBaseLinkUrl();
-  const fullUrl = `${baseOrigin}/join/${linkObj.token}`;
+  const fullUrl = `${baseOrigin}/connect/${linkObj.token}`;
 
   input.value = fullUrl;
-  nameEl.textContent = `Untuk: ${linkObj.deviceName}`;
+  nameEl.textContent = `Untuk: ${linkObj.accountName}`;
   if (anchor) anchor.href = fullUrl;
   if (textEl) textEl.textContent = fullUrl;
 
-  const shareText = `Halo! Ini tautan resmi akses ke Dashboard Kuma WhatsApp Admin:\n${fullUrl}\n\nCukup klik tautan di atas dan Anda akan langsung dialihkan ke dashboard serta otomatis dianggap sudah login.`;
-  if (shareBtn) shareBtn.href = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+  const shareText = `Halo! Silakan buka tautan berikut untuk menautkan akun WhatsApp Anda ke dashboard monitoring Kuma:\n${fullUrl}\n\nSetelah tautan dibuka, Anda tinggal memasukkan nomor WhatsApp dan kode pairing 8 digit otomatis muncul untuk dimasukkan di WhatsApp Anda (Menu > Perangkat Tertaut).`;
+  
+  const waShareUrl = linkObj.targetPhone 
+    ? `https://wa.me/${linkObj.targetPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(shareText)}`
+    : `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+    
+  if (shareBtn) shareBtn.href = waShareUrl;
 
   if (directBtn) {
     directBtn.onclick = () => window.open(fullUrl, '_blank');
   }
 
   card.style.display = 'block';
-  copyMagicLinkText(fullUrl, linkObj.deviceName);
+  copyPairingLinkText(fullUrl, linkObj.accountName);
 }
 
-function copyMagicLinkText(url, deviceName) {
+function copyPairingLinkText(url, accountName) {
   navigator.clipboard.writeText(url).then(() => {
-    showToast('Link Disalin ke Clipboard!', `Tautan untuk ${deviceName || 'perangkat'} siap dibagikan.`);
+    showToast('Link Penautan Disalin!', `Tautan penautan untuk ${accountName || 'WhatsApp'} siap dibagikan.`);
   }).catch(() => {
     const input = document.getElementById('gen-link-input');
     if (input) {
       input.select();
       document.execCommand('copy');
-      showToast('Link Disalin', 'Tautan akses siap dibagikan.');
+      showToast('Link Disalin', 'Tautan penautan WhatsApp siap dibagikan.');
     }
   });
 }
 
-function confirmRevokeLink(id, name) {
-  if (confirm(`Yakin ingin mencabut tautan akses untuk "${name}"? Perangkat pemegang link ini tidak akan bisa login lagi.`)) {
-    if (ws && ws.readyState === 1) {
-      ws.send(JSON.stringify({ type: 'revoke_auth_link', tokenId: id }));
-    } else {
-      fetch(`/api/links/${id}`, { method: 'DELETE' });
-    }
-    const idx = currentLinks.findIndex(l => l.id === id);
-    if (idx >= 0) currentLinks.splice(idx, 1);
-    renderLinksList();
-    showToast('Tautan Dicabut', `Akses untuk "${name}" telah dinonaktifkan.`);
+function confirmDeletePairingLink(id, name) {
+  if (confirm(`Yakin ingin menghapus link penautan untuk "${name}"?`)) {
+    fetch(`/api/pairing-links/${id}`, { method: 'DELETE' })
+      .then(r => r.json())
+      .then(res => {
+        if (res.ok) {
+          const idx = currentLinks.findIndex(l => l.id === id);
+          if (idx >= 0) currentLinks.splice(idx, 1);
+          renderLinksList();
+          showToast('Link Dihapus', `Link penautan untuk "${name}" telah dihapus.`);
+        }
+      });
   }
 }
 
-document.getElementById('form-create-link').onsubmit = e => {
-  e.preventDefault();
-  const nameInput = document.getElementById('input-link-device');
-  const expirySelect = document.getElementById('select-link-expiry');
-  const deviceName = (nameInput.value || '').trim();
-  const expiresHours = expirySelect.value ? Number(expirySelect.value) : null;
-  if (!deviceName) return;
-
-  if (ws && ws.readyState === 1) {
-    ws.send(JSON.stringify({
-      type: 'create_auth_link',
-      deviceName,
-      expiresHours
-    }));
-  } else {
-    fetch('/api/links', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ deviceName, expiresHours })
-    }).then(r => r.json()).then(res => {
-      if (res.ok) showGeneratedLinkCard(res.link);
-    });
+async function fetchPairingLinks() {
+  try {
+    const res = await fetch('/api/pairing-links');
+    const data = await res.json();
+    if (data.ok && Array.isArray(data.links)) {
+      currentLinks = data.links;
+      renderLinksList();
+    }
+  } catch (e) {
+    console.warn('[WA] Gagal mengambil daftar link penautan:', e);
   }
-  nameInput.value = '';
-};
+}
+
+const formCreatePairingLink = document.getElementById('form-create-pairing-link');
+if (formCreatePairingLink) {
+  formCreatePairingLink.onsubmit = async (e) => {
+    e.preventDefault();
+    const nameInput = document.getElementById('input-pairing-link-name');
+    const phoneInput = document.getElementById('input-pairing-link-phone');
+    const expirySelect = document.getElementById('select-pairing-link-expiry');
+
+    const accountName = (nameInput.value || '').trim();
+    const targetPhone = (phoneInput.value || '').trim();
+    const expiresHours = expirySelect.value ? Number(expirySelect.value) : null;
+    if (!accountName) return;
+
+    try {
+      const res = await fetch('/api/pairing-links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountName, targetPhone, expiresHours })
+      });
+      const data = await res.json();
+      if (data.ok && data.link) {
+        currentLinks.unshift(data.link);
+        renderLinksList();
+        showGeneratedLinkCard(data.link);
+        nameInput.value = '';
+        phoneInput.value = '';
+      } else {
+        alert(data.error || 'Gagal membuat link penautan');
+      }
+    } catch (err) {
+      alert('Terjadi kesalahan jaringan saat membuat link');
+    }
+  };
+}
 
 document.getElementById('btn-copy-gen-link').onclick = () => {
   const input = document.getElementById('gen-link-input');
   if (input && input.value) {
-    copyMagicLinkText(input.value, 'perangkat');
+    copyPairingLinkText(input.value, 'WhatsApp');
   }
 };
 
@@ -2936,6 +2988,7 @@ document.getElementById('threads').addEventListener('click', e => {
 
 // Start WebSocket connection
 connectWS();
+fetchPairingLinks();
 fetch('/api/status').then(r => r.json()).then(st => {
   if (st && st.localIp) {
     serverLocalIp = st.localIp;

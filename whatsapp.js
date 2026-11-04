@@ -19,6 +19,7 @@ const AUTH_DIR = path.join(__dirname, 'auth_info_baileys');
 const SESSIONS_DIR = path.join(__dirname, 'auth_sessions');
 const ACCOUNTS_PATH = path.join(__dirname, 'accounts.json');
 const TOKENS_PATH = path.join(__dirname, 'auth_tokens.json');
+const PAIRING_LINKS_PATH = path.join(__dirname, 'wa_pairing_links.json');
 const DB_PATH = path.join(__dirname, 'db.json');
 const CALLS_PATH = path.join(__dirname, 'calls.json');
 const CONTACTS_PATH = path.join(__dirname, 'contacts.json');
@@ -52,6 +53,15 @@ function isValidContactName(name) {
 function cleanDigits(str) {
   if (!str) return '';
   return String(str).replace(/[^\d]/g, '');
+}
+
+function normalizePhoneForWA(phone) {
+  let digits = cleanDigits(phone);
+  if (!digits) return '';
+  if (digits.startsWith('0')) {
+    digits = '62' + digits.slice(1);
+  }
+  return digits;
 }
 
 function formatPhoneNumber(num) {
@@ -303,6 +313,27 @@ class WhatsAppSession extends EventEmitter {
             phone: this.phone,
             pushName: this.pushName
           });
+
+          // Cek apakah akun ini ditautkan melalui pairing link
+          if (Array.isArray(this.manager.pairingLinks)) {
+            const matchedLink = this.manager.pairingLinks.find(l => l.accountId === this.id);
+            if (matchedLink) {
+              matchedLink.status = 'connected';
+              matchedLink.connectedAt = Date.now();
+              matchedLink.linkedPhone = this.phone;
+              matchedLink.linkedPushName = this.pushName;
+              this.manager.savePairingLinks();
+              this.manager.emit('pairing_link_completed', {
+                link: matchedLink,
+                account: {
+                  id: this.id,
+                  name: this.name,
+                  phone: this.phone,
+                  pushName: this.pushName
+                }
+              });
+            }
+          }
 
           this.manager.emitSessionStatus(this);
 
@@ -613,15 +644,38 @@ class WhatsAppSession extends EventEmitter {
     this.manager.emitSessionStatus(this, 'logged_out');
   }
 
+  async waitForSocketOpen(timeoutMs = 10000) {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      if (this.sock && this.sock.ws && this.sock.ws.isOpen) {
+        return true;
+      }
+      await new Promise(r => setTimeout(r, 300));
+    }
+    return Boolean(this.sock);
+  }
+
   async requestPairingCode(phoneNumber) {
     if (!this.sock) {
       throw new Error(`Koneksi socket untuk akun ${this.name} belum siap.`);
     }
-    const clean = cleanDigits(phoneNumber);
+    const clean = normalizePhoneForWA(phoneNumber);
     if (!clean || clean.length < 8) {
-      throw new Error('Nomor telepon tidak valid. Gunakan format internasional (contoh: 628123456789).');
+      throw new Error('Nomor telepon tidak valid. Gunakan format internasional atau lokal (contoh: 08123456789 atau 628123456789).');
     }
-    const code = await this.sock.requestPairingCode(clean);
+
+    // Pastikan koneksi websocket baileys siap
+    await this.waitForSocketOpen(8000);
+
+    let code;
+    try {
+      code = await this.sock.requestPairingCode(clean);
+    } catch (err) {
+      console.warn(`[WA:${this.name}] Percobaan pairing code pertama gagal (${err.message}), mencoba ulang...`);
+      await new Promise(r => setTimeout(r, 1500));
+      code = await this.sock.requestPairingCode(clean);
+    }
+
     this.pairingCode = code;
     this.manager.emit('pairing_code', {
       accountId: this.id,
@@ -647,9 +701,11 @@ class MultiWhatsAppService extends EventEmitter {
     this.lidMap = new Map();
     this.pnMap = new Map();
     this.authTokens = [];
+    this.pairingLinks = [];
 
     this.loadAccountsConfig();
     this.loadAuthTokens();
+    this.loadPairingLinks();
     this.loadContacts();
     this.loadDb();
     this.loadCalls();
@@ -1647,6 +1703,222 @@ class MultiWhatsAppService extends EventEmitter {
       throw new Error('Akun admin WhatsApp tidak ditemukan.');
     }
     return await session.requestPairingCode(phoneNumber);
+  }
+
+  // ==================== TAUTAN PENAUTAN WHATSAPP (PAIRING LINKS) ====================
+  loadPairingLinks() {
+    try {
+      if (fs.existsSync(PAIRING_LINKS_PATH)) {
+        const raw = JSON.parse(fs.readFileSync(PAIRING_LINKS_PATH, 'utf-8'));
+        if (Array.isArray(raw)) {
+          this.pairingLinks = raw;
+        }
+      }
+    } catch (err) {
+      console.error('[WA] Gagal memuat wa_pairing_links.json:', err.message);
+      this.pairingLinks = [];
+    }
+  }
+
+  savePairingLinks() {
+    try {
+      fs.writeFileSync(PAIRING_LINKS_PATH, JSON.stringify(this.pairingLinks, null, 2), 'utf-8');
+    } catch (err) {
+      console.error('[WA] Gagal menyimpan wa_pairing_links.json:', err.message);
+    }
+  }
+
+  createPairingLink({ accountName, targetPhone, expiresHours }) {
+    const cleanName = (accountName || '').trim() || `Admin CS ${this.accountConfigs.length + 1}`;
+    const cleanPhone = normalizePhoneForWA(targetPhone || '');
+    const id = 'link_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+    const token = crypto.randomBytes(12).toString('hex');
+    const expHours = expiresHours ? parseInt(expiresHours, 10) : 168; // default 7 hari
+
+    const linkObj = {
+      id,
+      token,
+      accountName: cleanName,
+      targetPhone: cleanPhone,
+      accountId: null,
+      status: 'pending', // 'pending' | 'pairing' | 'connected' | 'expired'
+      createdAt: Date.now(),
+      expiresAt: expHours > 0 ? Date.now() + expHours * 3600000 : null,
+      connectedAt: null,
+      linkedPhone: null,
+      linkedPushName: null,
+      pairingCode: null
+    };
+
+    this.pairingLinks.unshift(linkObj);
+    this.savePairingLinks();
+    this.emit('pairing_links_updated', this.getAllPairingLinks());
+    return linkObj;
+  }
+
+  getPairingLinkByToken(token) {
+    if (!token) return null;
+    const link = this.pairingLinks.find(l => l.token === token || l.id === token);
+    if (!link) return null;
+    if (link.expiresAt && Date.now() > link.expiresAt && link.status !== 'connected') {
+      link.status = 'expired';
+      this.savePairingLinks();
+    }
+    return link;
+  }
+
+  getAllPairingLinks() {
+    const now = Date.now();
+    return this.pairingLinks.map(l => {
+      // Sinkronkan dengan sesi aktif jika ada
+      if (l.accountId && l.status !== 'connected') {
+        const session = this.accounts.get(l.accountId);
+        if (session && session.connectionState === 'open') {
+          l.status = 'connected';
+          l.connectedAt = l.connectedAt || Date.now();
+          l.linkedPhone = session.phone;
+          l.linkedPushName = session.pushName;
+        }
+      }
+      const isExpired = Boolean(l.expiresAt && now > l.expiresAt && l.status !== 'connected');
+      return {
+        ...l,
+        isExpired,
+        displayStatus: isExpired ? 'expired' : l.status
+      };
+    });
+  }
+
+  async deletePairingLink(id) {
+    const idx = this.pairingLinks.findIndex(l => l.id === id || l.token === id);
+    if (idx >= 0) {
+      const link = this.pairingLinks[idx];
+      // Jika akun masih pairing (belum pernah terhubung), bersihkan sesi sementara
+      if (link.accountId && link.status !== 'connected') {
+        try {
+          await this.deleteAccount(link.accountId);
+        } catch (e) {
+          console.warn('[WA] Gagal membersihkan sesi akun sementara saat link dihapus:', e.message);
+        }
+      }
+      this.pairingLinks.splice(idx, 1);
+      this.savePairingLinks();
+      this.emit('pairing_links_updated', this.getAllPairingLinks());
+      return true;
+    }
+    return false;
+  }
+
+  async startPairingForLink(token, phone) {
+    const link = this.getPairingLinkByToken(token);
+    if (!link) {
+      throw new Error('Tautan penautan tidak ditemukan atau sudah kedaluwarsa.');
+    }
+    if (link.status === 'expired') {
+      throw new Error('Tautan penautan ini sudah kedaluwarsa.');
+    }
+
+    // Jika sudah terhubung, langsung kembalikan status terhubung
+    if (link.status === 'connected' && link.accountId) {
+      const session = this.accounts.get(link.accountId);
+      if (session && session.connectionState === 'open') {
+        return {
+          ok: true,
+          status: 'connected',
+          accountId: link.accountId,
+          accountName: link.accountName,
+          phone: session.phone || link.linkedPhone,
+          pushName: session.pushName || link.linkedPushName
+        };
+      }
+    }
+
+    const cleanPhone = normalizePhoneForWA(phone || link.targetPhone);
+    if (!cleanPhone || cleanPhone.length < 8) {
+      throw new Error('Nomor WhatsApp tidak valid. Masukkan nomor dengan benar (contoh: 08123456789 atau 628123456789).');
+    }
+
+    let session = null;
+    if (link.accountId && this.accounts.get(link.accountId)) {
+      session = this.accounts.get(link.accountId);
+    } else {
+      // Buat akun WhatsApp admin baru khusus untuk link ini
+      const newAcc = await this.addAccount(link.accountName);
+      link.accountId = newAcc.id;
+      session = this.accounts.get(newAcc.id);
+      this.savePairingLinks();
+    }
+
+    const code = await session.requestPairingCode(cleanPhone);
+    link.pairingCode = code;
+    link.status = 'pairing';
+    link.targetPhone = cleanPhone;
+    this.savePairingLinks();
+
+    this.emit('pairing_link_updated', link);
+
+    const formattedCode = code ? (code.match(/.{1,4}/g)?.join('-') || code) : code;
+    return {
+      ok: true,
+      status: 'pairing',
+      code,
+      formattedCode,
+      qr: session.qrCodeDataUrl || null,
+      accountId: session.id,
+      accountName: session.name,
+      phone: cleanPhone
+    };
+  }
+
+  getPairingLinkStatus(token) {
+    const link = this.getPairingLinkByToken(token);
+    if (!link) {
+      return { ok: false, error: 'Tautan tidak ditemukan' };
+    }
+
+    let session = null;
+    if (link.accountId) {
+      session = this.accounts.get(link.accountId);
+    }
+
+    if (session && session.connectionState === 'open') {
+      if (link.status !== 'connected') {
+        link.status = 'connected';
+        link.connectedAt = link.connectedAt || Date.now();
+        link.linkedPhone = session.phone;
+        link.linkedPushName = session.pushName;
+        this.savePairingLinks();
+        this.emit('pairing_link_completed', {
+          link,
+          account: {
+            id: session.id,
+            name: session.name,
+            phone: session.phone,
+            pushName: session.pushName
+          }
+        });
+      }
+      return {
+        ok: true,
+        status: 'connected',
+        accountId: session.id,
+        accountName: session.name,
+        phone: session.phone || link.linkedPhone,
+        pushName: session.pushName || link.linkedPushName
+      };
+    }
+
+    return {
+      ok: true,
+      status: link.status,
+      accountId: link.accountId,
+      accountName: link.accountName,
+      targetPhone: link.targetPhone,
+      pairingCode: link.pairingCode,
+      formattedCode: link.pairingCode ? (link.pairingCode.match(/.{1,4}/g)?.join('-') || link.pairingCode) : null,
+      qr: session?.qrCodeDataUrl || null,
+      connectionState: session?.connectionState || 'disconnected'
+    };
   }
 
   async init() {

@@ -6,6 +6,7 @@ package-lock.json
 auth_info_baileys/
 auth_sessions/
 auth_tokens.json
+wa_pairing_links.json
 
 # Local Database & User Data
 db.json
