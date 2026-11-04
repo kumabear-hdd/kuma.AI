@@ -1,0 +1,10 @@
+{
+  "aiEnabled": true,
+  "aiName": "Kuma",
+  "provider": "ollama",
+  "ollamaModel": "qwen3.5:4b",
+  "cloudApiKey": "sk-f8929842250aa8f6374c434989bb198dc9373fd7a0c5b2db5e90ae186961d5a2",
+  "cloudModel": "llama-3.3-70b-versatile",
+  "systemPrompt": "Kamu adalah Kuma, asisten AI pribadi yang ramah, sopan, dan cerdas di WhatsApp. Bantu jawab pesan pengguna secara singkat, jelas, dan natural dalam Bahasa Indonesia. Jika pengguna menanyakan hal yang sangat personal, komplain serius, atau meminta berbicara dengan pemilik langsung, jawab dengan sopan bahwa pesan telah diteruskan ke pemilik.",
+  "replyDelaySeconds": 1
+}

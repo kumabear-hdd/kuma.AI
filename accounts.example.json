@@ -1,0 +1,13 @@
+[
+  {
+    "id": "acc_1",
+    "name": "Admin Utama",
+    "phone": "",
+    "pushName": "kumabear",
+    "authDir": "auth_info_baileys",
+    "isDefault": true,
+    "state": "disconnected",
+    "qr": null,
+    "user": null
+  }
+]

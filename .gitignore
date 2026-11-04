@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# WhatsApp Authentication & Sessions (SENSITIF: Jangan pernah di-commit ke Git)
+auth_info_baileys/
+auth_sessions/
+auth_tokens.json
+
+# Local Database & User Data
+db.json
+contacts.json
+calls.json
+accounts.json
+
+# Media files
+media/
+
+# Backup & Logs
+*.bak
+*.log
+.DS_Store

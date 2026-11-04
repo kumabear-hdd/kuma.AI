@@ -1,0 +1,2947 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Kuma — WhatsApp Admin &amp; CS Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============ DESIGN TOKENS ============ */
+:root{
+  --paper:#F4F6F3;
+  --surface:#FFFFFF;
+  --ink:#111E18;
+  --muted:#66766E;
+  --line:#E2E7E2;
+  --line-soft:#ECEFEA;
+
+  --green:#0A7A4B;
+  --green-soft:#E6F3EC;
+  --blue:#2563EB;
+  --blue-soft:#EFF6FF;
+  --amber:#9A5B00;
+  --amber-soft:#FBF0DF;
+  --red:#DC2626;
+  --red-soft:#FEF2F2;
+  --live:#22C55E;
+
+  --r-lg:16px; --r-md:10px; --r-sm:6px;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;
+  --body:"Instrument Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+
+*{box-sizing:border-box}
+html,body{
+  height:100%;
+  margin:0;
+  padding:0;
+  overflow:hidden;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+:focus-visible{outline:2px solid var(--green);outline-offset:2px;border-radius:4px}
+
+.eyebrow{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);
+}
+
+.screen{display:none;height:100vh;height:100dvh;max-height:100dvh;overflow:hidden}
+.screen.is-on{display:block}
+
+/* ============ LAYAR LOGIN & QR ============ */
+.login{
+  height:100%;
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  overflow-y:auto;
+}
+
+.brandside{
+  background:var(--ink);color:#EAF0EC;padding:44px 48px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  position:relative;overflow:hidden;
+}
+.brandside::after{
+  content:"";position:absolute;inset:auto -10% -12% -10%;height:60%;
+  background:
+    radial-gradient(120% 90% at 20% 100%, rgba(37,99,235,.25), transparent 60%),
+    radial-gradient(90% 80% at 85% 100%, rgba(10,122,75,.35), transparent 60%);
+  pointer-events:none;
+}
+.brandside > *{position:relative;z-index:1}
+.mark{display:flex;align-items:center;gap:10px}
+.mark-dot{width:28px;height:28px;border-radius:8px;background:var(--live);
+  display:grid;place-items:center;color:#08301F;font-weight:800;font-family:var(--display);font-size:15px}
+.mark-name{font-family:var(--display);font-weight:800;font-size:19px;letter-spacing:-.02em}
+.mark-name small{font-weight:400;opacity:.65;margin-left:6px;font-size:12px;letter-spacing:0}
+
+.linkstate{
+  display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;
+  letter-spacing:.08em;text-transform:uppercase;color:#A9BAB1;background:rgba(255,255,255,.08);
+  padding:5px 12px;border-radius:999px;width:fit-content;border:1px solid rgba(255,255,255,.12);
+}
+.linkstate.online{color:var(--live);border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.12)}
+.linkstate .s-dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+
+.pitch{max-width:34ch;margin:46px 0}
+.pitch h1{
+  font-family:var(--display);font-weight:800;letter-spacing:-.035em;
+  font-size:clamp(30px,4vw,44px);line-height:1.08;margin:14px 0 16px;
+}
+.pitch h1 em{font-style:normal;color:var(--live)}
+.pitch p{color:#A9BAB1;margin:0;max-width:38ch;font-size:14px}
+
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:14px;max-width:36ch}
+.steps li{display:grid;grid-template-columns:22px 1fr;gap:12px;align-items:start}
+.steps .n{font-family:var(--mono);font-size:11px;color:var(--live);padding-top:2px}
+.steps p{margin:0;color:#BCCBC3;font-size:13px}
+.steps b{color:#EAF0EC;font-weight:600;display:block}
+
+.scanside{display:grid;place-items:center;padding:32px 24px}
+.qrcard{
+  width:min(420px,100%);background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-lg);padding:32px 28px 26px;text-align:center;
+  box-shadow:0 1px 0 rgba(18,33,28,.04),0 18px 40px -28px rgba(18,33,28,.35);
+}
+.qrcard h2{font-family:var(--display);font-weight:600;font-size:22px;letter-spacing:-.02em;margin:10px 0 6px}
+.qrcard .sub{color:var(--muted);margin:0 auto 20px;max-width:32ch;font-size:13px}
+
+.qrframe{position:relative;width:220px;height:220px;margin:0 auto;background:#fff;border-radius:8px;padding:6px;border:1px solid var(--line)}
+.qrframe canvas{width:100%;height:100%;display:block;border-radius:4px;object-fit:contain}
+.qr-loading{
+  position:absolute;inset:0;background:rgba(255,255,255,.94);border-radius:6px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;font-size:12.5px;color:var(--muted);font-weight:500;
+}
+.spinner{
+  width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--green);
+  border-radius:50%;animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.enter{
+  width:100%;background:var(--green);color:#fff;padding:12px;border-radius:var(--r-md);
+  font-weight:600;font-size:14px;transition:background .15s;cursor:pointer;margin-top:16px;
+}
+.enter:hover{background:#08653F}
+
+/* ============ CORE APP LAYOUT (FIXED VIEWPORT) ============ */
+.app-layout{
+  width:100vw;
+  height:100vh;
+  height:100dvh;
+  max-height:100dvh;
+  display:flex;
+  overflow:hidden;
+}
+
+/* Navigasi Rail Kiri */
+.rail{
+  width:64px;
+  height:100%;
+  background:var(--ink);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  padding:16px 0;
+  flex-shrink:0;
+  z-index:30;
+}
+.rail .logo{
+  width:34px;height:34px;border-radius:10px;background:var(--live);display:grid;place-items:center;
+  color:#08301F;font-family:var(--display);font-weight:800;margin-bottom:14px;cursor:pointer;
+  font-size:16px;
+}
+.rail button{
+  width:42px;height:42px;border-radius:10px;display:grid;place-items:center;color:#7F9389;
+  transition:background .15s,color .15s;position:relative;
+}
+.rail button:hover{background:rgba(255,255,255,.08);color:#EAF0EC}
+.rail button.on{background:rgba(34,197,94,.18);color:var(--live)}
+.rail button .badge-dot{
+  position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;
+  background:var(--red);border:1.5px solid var(--ink);display:none;
+}
+.rail button.has-unread .badge-dot{display:block}
+.rail .spacer{flex:1}
+.rail .me{
+  width:32px;height:32px;border-radius:50%;background:#233930;color:#CFE0D7;
+  display:grid;place-items:center;font-size:11px;font-weight:600;border:1px solid rgba(255,255,255,.1);
+}
+
+/* Viewport Konten Utama */
+.view-container{
+  flex:1 1 0;
+  min-width:0;
+  height:100%;
+  min-height:0;
+  max-height:100%;
+  display:flex;
+  overflow:hidden;
+  position:relative;
+}
+
+/* ============ VIEW 1: INBOX (CHAT & KONTAK) ============ */
+.view-inbox{
+  width:100%;
+  height:100%;
+  min-height:0;
+  max-height:100%;
+  display:grid;
+  grid-template-columns:330px minmax(0, 1fr) 300px;
+  grid-template-rows:100%;
+  overflow:hidden;
+}
+.view-inbox.is-hidden{display:none}
+
+/* Kolom 1: Kontak (Rollup & Rolldown Smooth Scroll) */
+.list{
+  height:100%;
+  min-height:0;
+  max-height:100%;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  overflow:hidden;
+  background:var(--surface);
+  border-right:1px solid var(--line);
+}
+
+.list-head{padding:14px 16px 10px;border-bottom:1px solid var(--line-soft);flex-shrink:0}
+.list-head h2{font-family:var(--display);font-size:19px;font-weight:600;letter-spacing:-.02em;margin:3px 0 8px}
+.search{
+  display:flex;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--line);
+  border-radius:var(--r-md);padding:7px 10px;color:var(--muted);
+}
+.search input{border:0;background:none;outline:none;font:inherit;color:var(--ink);width:100%;font-size:13px}
+.search input::placeholder{color:#9AA8A1}
+
+.filters{
+  display:flex;gap:5px;padding:8px 14px;border-bottom:1px solid var(--line-soft);
+  overflow-x:auto;flex-shrink:0;scrollbar-width:none;
+}
+.filters::-webkit-scrollbar{display:none}
+.chip{
+  white-space:nowrap;font-size:11.5px;padding:4px 10px;border-radius:999px;
+  border:1px solid var(--line);color:var(--muted);transition:.15s;cursor:pointer;
+}
+.chip:hover{border-color:#CBD5CE;color:var(--ink)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip .num{font-family:var(--mono);font-size:10px;opacity:.7;margin-left:4px}
+
+/* Daftar Threads: Scrollable Vertikal (Rollup & Rolldown) */
+.threads{
+  flex:1 1 0;
+  height:0;
+  min-height:0;
+  overflow-y:scroll;
+  overflow-x:hidden;
+  scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Custom Sleek Scrollbar */
+.threads::-webkit-scrollbar,
+.stream::-webkit-scrollbar,
+.ctx::-webkit-scrollbar,
+.view-calls::-webkit-scrollbar{
+  width:6px;
+  height:6px;
+}
+.threads::-webkit-scrollbar-track,
+.stream::-webkit-scrollbar-track,
+.ctx::-webkit-scrollbar-track,
+.view-calls::-webkit-scrollbar-track{
+  background:rgba(0,0,0,0.02);
+}
+.threads::-webkit-scrollbar-thumb,
+.stream::-webkit-scrollbar-thumb,
+.ctx::-webkit-scrollbar-thumb,
+.view-calls::-webkit-scrollbar-thumb{
+  background:#CBD5E1;
+  border-radius:999px;
+}
+.threads::-webkit-scrollbar-thumb:hover,
+.stream::-webkit-scrollbar-thumb:hover,
+.ctx::-webkit-scrollbar-thumb:hover,
+.view-calls::-webkit-scrollbar-thumb:hover{
+  background:#94A3B8;
+}
+
+/* Item Kartu Kontak */
+.thread{
+  width:100%;display:grid;grid-template-columns:40px 1fr;gap:11px;padding:12px 14px;
+  text-align:left;border-bottom:1px solid var(--line-soft);transition:background .12s;position:relative;
+  cursor:pointer;background:#fff;
+}
+.thread:hover{background:#FAFBF8}
+.thread.on{background:var(--green-soft)}
+.thread.on::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--green)}
+
+.av{
+  width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+  font-size:12px;font-weight:600;color:#25453A;background:#DCE7E0;position:relative;flex-shrink:0;
+}
+.av.group-av{background:#E0E7FF;color:#3730A3;border-radius:12px}
+.av .ch{
+  position:absolute;right:-2px;bottom:-2px;width:16px;height:16px;border-radius:50%;
+  border:2px solid var(--surface);display:grid;place-items:center;background:var(--live);
+}
+.av .ch svg{width:8px;height:8px;fill:#fff}
+
+.t-top{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.t-name{font-weight:600;font-size:13.5px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-time{font-family:var(--mono);font-size:10.5px;color:var(--muted);flex:none}
+.t-msg{
+  color:var(--muted);font-size:12px;margin:2px 0 4px;
+  display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;word-break:break-all;
+}
+.t-meta{display:flex;align-items:center;gap:6px}
+
+.tag{
+  display:inline-flex;align-items:center;gap:3px;font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.06em;text-transform:uppercase;padding:2px 5px;border-radius:var(--r-sm);
+}
+.tag.group{background:#E0E7FF;color:#3730A3;border:1px solid #C7D2FE}
+.tag.personal{background:#F1F5F9;color:#475569;border:1px solid #E2E8F0}
+.unread{
+  background:var(--green);color:#fff;font-family:var(--mono);
+  font-size:10px;min-width:18px;height:18px;border-radius:9px;display:grid;place-items:center;padding:0 5px;
+}
+
+/* Tombol Izin Notifikasi Per-Kontak */
+.btn-notif-chip{
+  margin-left:auto;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
+  font-size:11px;transition:background .15s, transform .1s;background:transparent;
+}
+.btn-notif-chip:hover{background:rgba(0,0,0,.08);transform:scale(1.1)}
+.btn-notif-chip.is-active{color:var(--green)}
+.btn-notif-chip.is-muted{color:#A0AEC0;opacity:.7}
+
+/* ============ Kolom 2: Chat Stream (Proporsional Normal) ============ */
+.chat{
+  height:100%;
+  min-height:0;
+  max-height:100%;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  overflow:hidden;
+  background:var(--paper);
+}
+
+.chat-head{
+  background:var(--surface);border-bottom:1px solid var(--line);
+  padding:11px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0;
+}
+.chat-head .who{min-width:0}
+.chat-head h3{margin:0;font-size:14.5px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-head .status{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:1px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--live)}
+.head-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+
+.ghost{
+  border:1px solid var(--line);padding:6px 11px;border-radius:var(--r-md);
+  font-size:12px;font-weight:500;color:var(--ink);background:var(--surface);transition:.15s;
+  cursor:pointer;display:inline-flex;align-items:center;gap:5px;
+}
+.ghost:hover{border-color:#CBD5CE;background:#FAFBF8}
+.ghost.danger{color:var(--red)}
+.ghost.danger:hover{background:var(--red-soft);border-color:#FCA5A5}
+.ghost.active-notif{background:var(--green-soft);border-color:#A7F3D0;color:var(--green)}
+
+/* Stream Pesan: Scrollable Vertikal Mandiri */
+.stream{
+  flex:1 1 0;
+  height:0;
+  min-height:0;
+  overflow-y:scroll;
+  overflow-x:hidden;
+  padding:18px 22px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  scroll-behavior:smooth;
+}
+
+.daymark{
+  align-self:center;font-family:var(--mono);font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted);background:var(--surface);border:1px solid var(--line);
+  padding:4px 10px;border-radius:999px;margin:4px 0;
+}
+
+/* Balon Pesan */
+.msg{max-width:min(580px,80%);display:flex;flex-direction:column;gap:3px}
+.msg.in{align-self:flex-start}
+.msg.out{align-self:flex-end;align-items:flex-end}
+
+.msg-sender{
+  font-size:11px;font-weight:600;color:var(--green);padding-left:4px;margin-bottom:1px;
+}
+.bubble{
+  background:var(--surface);border:1px solid var(--line);padding:9px 12px;
+  border-radius:14px 14px 14px 4px;font-size:13.5px;word-break:break-word;
+  box-shadow:0 1px 2px rgba(18,33,28,.03);
+}
+.msg.out .bubble{
+  border-radius:14px 14px 4px 14px;background:#E7F4EE;border-color:#CFE6DA;color:#0F3024;
+}
+.msg p{margin:0}
+.meta{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px}
+.meta .tag-admin{
+  background:#D1FAE5;color:#065F46;font-size:9px;padding:1px 5px;border-radius:4px;font-weight:600;
+}
+
+/* Tampilan Media */
+.media-box{margin-bottom:6px;border-radius:8px;overflow:hidden}
+.media-img{
+  max-width:320px;max-height:280px;border-radius:8px;display:block;cursor:pointer;
+  object-fit:cover;transition:opacity .15s;background:#eee;
+}
+.media-img:hover{opacity:.9}
+.media-video{max-width:340px;max-height:240px;border-radius:8px;display:block;background:#000}
+.media-audio{width:260px;height:40px;display:block;border-radius:8px}
+.media-doc{
+  display:flex;align-items:center;gap:10px;padding:9px 12px;background:rgba(0,0,0,.04);
+  border-radius:8px;text-decoration:none;color:inherit;font-size:12.5px;
+}
+.media-doc:hover{background:rgba(0,0,0,.07)}
+.media-doc-icon{
+  width:32px;height:32px;border-radius:6px;background:var(--blue-soft);color:var(--blue);
+  display:grid;place-items:center;flex-shrink:0;font-size:15px;
+}
+
+/* Banner Izin Notifikasi Browser */
+.browser-notif-banner{
+  background:#EFF6FF;border-bottom:1px solid #BFDBFE;padding:8px 16px;
+  display:none;align-items:center;justify-content:space-between;font-size:12px;color:#1E40AF;
+  flex-shrink:0;
+}
+.browser-notif-banner.is-shown{display:flex}
+.browser-notif-banner button{
+  background:#2563EB;color:#fff;padding:4px 10px;border-radius:6px;font-size:11.5px;font-weight:600;
+}
+
+/* Composer / Input Balasan Admin */
+.composer{
+  background:var(--surface);border-top:1px solid var(--line);padding:10px 18px 14px;
+  flex-shrink:0;
+}
+.quick-replies{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:6px}
+.qr-btn{
+  font-size:11.5px;padding:4px 9px;border-radius:999px;background:var(--paper);
+  border:1px solid var(--line);color:#334155;white-space:nowrap;transition:.12s;cursor:pointer;
+}
+.qr-btn:hover{background:var(--line-soft);color:var(--ink)}
+
+.inputrow{
+  display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:var(--r-md);
+  padding:8px 12px;background:#fff;transition:border-color .15s;
+}
+.inputrow:focus-within{border-color:var(--green)}
+.inputrow input{flex:1;border:0;outline:none;font:inherit;background:none;font-size:13.5px}
+.send{
+  width:34px;height:34px;border-radius:8px;background:var(--green);display:grid;place-items:center;
+  flex:none;cursor:pointer;transition:background .15s;
+}
+.send:hover{background:#08653F}
+.send svg{width:15px;height:15px;fill:#fff}
+
+/* ============ Kolom 3: Konteks & Pengaturan Izin ============ */
+.ctx{
+  height:100%;
+  min-height:0;
+  max-height:100%;
+  background:var(--surface);
+  border-left:1px solid var(--line);
+  overflow-y:auto;
+  padding:18px;
+}
+.ctx-person{text-align:center;padding-bottom:16px;border-bottom:1px solid var(--line-soft)}
+.ctx-person .av{width:56px;height:56px;margin:0 auto 10px;font-size:18px}
+.ctx-person h4{margin:0;font-family:var(--display);font-size:16px;font-weight:600;letter-spacing:-.02em}
+.ctx-person span{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+
+.block{padding:14px 0;border-bottom:1px solid var(--line-soft)}
+.block:last-child{border-bottom:0}
+.block h5{
+  margin:0 0 8px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);font-weight:500;
+}
+.kv{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:4px 0}
+.kv span{color:var(--muted)}
+.kv b{font-weight:500;font-family:var(--mono);font-size:12px}
+
+/* Toggle Switch */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.toggle-switch{position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0}
+.slider{
+  position:absolute;cursor:pointer;inset:0;background-color:#CBD5E1;border-radius:22px;transition:.2s
+}
+.slider:before{
+  position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background-color:white;
+  border-radius:50%;transition:.2s
+}
+input:checked + .slider{background-color:var(--green)}
+input:checked + .slider:before{transform:translateX(18px)}
+
+/* ============ VIEW 2: RIWAYAT PANGGILAN ============ */
+.view-calls{
+  width:100%;
+  height:100%;
+  min-height:0;
+  max-height:100%;
+  display:none;
+  flex-direction:column;
+  background:var(--paper);
+  overflow-y:auto;
+  padding:24px 32px;
+}
+.view-calls.is-active{display:flex}
+
+.calls-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
+.calls-header h2{font-family:var(--display);font-size:24px;font-weight:700;margin:4px 0 0;letter-spacing:-.02em}
+
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat-card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:16px 20px;
+  box-shadow:0 1px 2px rgba(18,33,28,.02);
+}
+.stat-card .val{font-family:var(--display);font-size:26px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.stat-card .lbl{font-size:12px;color:var(--muted);margin-top:4px}
+.stat-card.danger .val{color:var(--red)}
+.stat-card.success .val{color:var(--green)}
+.stat-card.primary .val{color:var(--blue)}
+
+.calls-filters{display:flex;gap:8px;margin-bottom:16px}
+
+.calls-table-wrap{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  overflow:hidden;box-shadow:0 1px 3px rgba(18,33,28,.04);
+}
+.calls-table{width:100%;border-collapse:collapse;text-align:left;font-size:13px}
+.calls-table th{
+  background:#FAFBF8;padding:12px 18px;font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);
+}
+.calls-table td{padding:14px 18px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+.calls-table tr:last-child td{border-bottom:0}
+.calls-table tr:hover td{background:#FAFBF8}
+
+.call-status-badge{
+  display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;
+  font-size:11.5px;font-weight:500;
+}
+.call-status-badge.missed{background:var(--red-soft);color:var(--red);border:1px solid #FECACA}
+.call-status-badge.accepted{background:var(--green-soft);color:var(--green);border:1px solid #BBF7D0}
+.call-status-badge.ringing{background:var(--amber-soft);color:var(--amber);border:1px solid #FDE68A}
+.call-status-badge.rejected{background:#F1F5F9;color:#64748B;border:1px solid #E2E8F0}
+
+/* In-App Toast Notification */
+.toast-container{
+  position:fixed;top:18px;right:18px;z-index:999;display:flex;flex-direction:column;gap:8px;
+  pointer-events:none;
+}
+.toast{
+  pointer-events:auto;background:var(--ink);color:#fff;padding:12px 16px;border-radius:var(--r-md);
+  box-shadow:0 10px 25px -5px rgba(0,0,0,.35);font-size:13px;display:flex;align-items:center;gap:12px;
+  animation:toastIn .2s cubic-bezier(0.16, 1, 0.3, 1);max-width:340px;cursor:pointer;
+}
+@keyframes toastIn{from{transform:translateX(50px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* Lightbox Modal */
+.lightbox{
+  position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);
+  display:none;place-items:center;z-index:100;padding:24px;
+}
+.lightbox.is-open{display:grid}
+.lightbox-content{max-width:90vw;max-height:88vh;position:relative}
+.lightbox-content img{max-width:100%;max-height:85vh;border-radius:8px;box-shadow:0 20px 40px rgba(0,0,0,.5)}
+.lightbox-close{
+  position:absolute;top:-42px;right:0;color:#fff;font-size:26px;cursor:pointer;
+  background:rgba(255,255,255,.15);width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+}
+
+
+/* ============ MULTI-ACCOUNT WHATSAPP STYLES ============ */
+.rail button .badge-count{
+  position:absolute;top:4px;right:4px;background:var(--blue);color:#fff;
+  font-size:9px;font-weight:700;padding:1px 4.5px;border-radius:10px;line-height:1.1;
+  font-family:var(--mono);border:1.5px solid var(--ink);
+}
+.account-bar{
+  display:flex;flex-direction:column;gap:6px;padding:8px 14px 7px;border-bottom:1px solid var(--line-soft);
+  background:#FAFBF9;flex-shrink:0;
+}
+.account-bar-top{
+  display:flex;align-items:center;justify-content:space-between;font-size:11px;
+}
+.account-bar-top span{
+  font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
+}
+.btn-manage-accounts{
+  font-size:11px;font-weight:600;color:var(--green);display:flex;align-items:center;gap:3px;
+  padding:2px 6px;border-radius:4px;transition:background .15s;
+}
+.btn-manage-accounts:hover{background:var(--green-soft)}
+.account-chips-wrap{
+  display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;
+}
+.account-chips-wrap::-webkit-scrollbar{display:none}
+.acc-chip{
+  white-space:nowrap;font-size:11px;padding:3px 9px;border-radius:6px;border:1px solid var(--line);
+  background:var(--surface);color:var(--muted);cursor:pointer;transition:.15s;display:flex;align-items:center;gap:5px;
+}
+.acc-chip:hover{border-color:#CBD5CE;color:var(--ink)}
+.acc-chip.on{background:var(--green-soft);border-color:#A3D9BE;color:var(--green);font-weight:600}
+.acc-chip .dot-status{width:6px;height:6px;border-radius:50%;background:#94A3B8}
+.acc-chip.on .dot-status{background:var(--live)}
+
+.tag.acc-tag{
+  background:#EEF2FF;color:#4338CA;border:1px solid #C7D2FE;font-weight:600;font-size:9.5px;
+  padding:1px 6px;border-radius:4px;display:inline-flex;align-items:center;gap:3px;max-width:130px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.head-acc-badge{
+  font-size:10.5px;padding:1px 6px;border-radius:4px;background:var(--green-soft);color:var(--green);
+  border:1px solid #BBF7D0;font-weight:600;
+}
+
+.composer-sender-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 10px;
+  font-size:11.5px;color:var(--muted);background:var(--paper);border-radius:var(--r-sm);margin-bottom:6px;
+}
+.composer-account-select{
+  font:inherit;font-size:11.5px;font-weight:600;color:var(--ink);background:var(--surface);
+  border:1px solid var(--line);border-radius:4px;padding:2px 8px;outline:none;cursor:pointer;
+}
+
+/* Modal Multi-Akun */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);
+  display:none;place-items:center;z-index:110;padding:20px;
+}
+.modal-backdrop.is-open{display:grid}
+.modal-card{
+  background:var(--surface);border-radius:var(--r-lg);max-width:560px;width:100%;
+  max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,.35);
+  display:flex;flex-direction:column;animation:modalScale .2s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes modalScale{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-header{
+  padding:20px 24px 16px;border-bottom:1px solid var(--line-soft);display:flex;
+  align-items:flex-start;justify-content:space-between;
+}
+.modal-header h3{margin:4px 0 2px;font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:-.02em}
+.modal-sub{margin:0;font-size:12.5px;color:var(--muted)}
+.modal-close{font-size:24px;color:var(--muted);cursor:pointer;line-height:1;padding:2px 6px;border-radius:6px}
+.modal-close:hover{background:var(--paper);color:var(--ink)}
+.modal-body{padding:20px 24px;display:flex;flex-direction:column;gap:20px}
+.sec-title{font-size:11.5px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px}
+.accounts-list{display:flex;flex-direction:column;gap:8px}
+.account-item-card{
+  border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--paper);
+}
+.account-item-card.is-open{border-color:#BBF7D0;background:#F3FAF6}
+.acc-card-info{display:flex;align-items:center;gap:10px;min-width:0}
+.acc-card-avatar{
+  width:36px;height:36px;border-radius:50%;background:var(--ink);color:#fff;display:grid;
+  place-items:center;font-weight:600;font-size:13px;flex-shrink:0;
+}
+.acc-card-avatar.open{background:var(--green)}
+.acc-card-texts{min-width:0}
+.acc-card-name{font-weight:600;font-size:13.5px;display:flex;align-items:center;gap:6px}
+.acc-card-phone{font-size:12px;color:var(--muted)}
+.acc-card-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.status-pill{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:999px;display:inline-flex;align-items:center;gap:4px}
+.status-pill.open{background:var(--green-soft);color:var(--green)}
+.status-pill.connecting{background:var(--amber-soft);color:var(--amber)}
+.status-pill.disconnected{background:#F1F5F9;color:#64748B}
+.add-account-form{display:flex;gap:8px}
+.add-account-form input{
+  flex:1;border:1px solid var(--line);background:var(--paper);border-radius:var(--r-sm);
+  padding:9px 12px;font:inherit;font-size:13px;outline:none;
+}
+.add-account-form input:focus{border-color:var(--green);background:var(--surface)}
+.btn-add-acc{
+  background:var(--green);color:#fff;font-weight:600;font-size:12.5px;padding:0 14px;
+  border-radius:var(--r-sm);transition:background .15s;white-space:nowrap;
+}
+.btn-add-acc:hover{background:#08633D}
+.modal-qr-box{margin-top:14px;border:1px solid #CBD5CE;border-radius:var(--r-md);padding:16px;background:#FAFBF9;text-align:center}
+.modal-qr-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:12px;font-weight:600}
+.btn-cancel-qr{font-size:11px;color:var(--muted);cursor:pointer;padding:2px 6px;border-radius:4px}
+.btn-cancel-qr:hover{color:var(--red)}
+.modal-qr-content canvas{display:block;margin:0 auto;border-radius:8px;border:1px solid var(--line);background:#fff;padding:6px}
+.modal-qr-desc{margin:10px 0 0;font-size:11.5px;color:var(--muted);line-height:1.4}
+.modal-qr-loading{display:none;flex-direction:column;align-items:center;gap:10px;padding:20px;font-size:12px;color:var(--muted)}
+
+
+/* ============ MAGIC LINK & PAIRING CODE STYLES ============ */
+.modal-tab-bar{
+  display:flex;border-bottom:1px solid var(--line-soft);background:#FAFBF9;padding:0 24px;gap:4px;
+}
+.m-tab{
+  padding:12px 16px;font-size:12.5px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;
+  cursor:pointer;transition:.15s;background:none;border-top:none;border-left:none;border-right:none;
+}
+.m-tab:hover{color:var(--ink)}
+.m-tab.on{color:var(--green);border-bottom-color:var(--green);background:var(--surface)}
+.tab-pane{display:flex;flex-direction:column}
+.info-alert{
+  background:#EFF6FF;border:1px solid #BFDBFE;color:#1E40AF;padding:12px 14px;border-radius:var(--r-md);
+  font-size:12.5px;display:flex;gap:12px;align-items:flex-start;line-height:1.45;
+}
+.generated-link-card{
+  margin-top:14px;border:1px solid #BBF7D0;background:#F0FDF4;padding:14px;border-radius:var(--r-md);
+}
+.link-card-header{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;
+}
+.link-display-row{
+  display:flex;gap:6px;
+}
+.link-display-row input{
+  flex:1;background:#fff;border:1px solid #86EFAC;font-family:var(--mono);font-size:12px;
+  padding:8px 10px;border-radius:var(--r-sm);color:var(--ink);outline:none;
+}
+.btn-copy-link{
+  background:var(--green);color:#fff;font-weight:600;font-size:12px;padding:0 14px;border-radius:var(--r-sm);
+  cursor:pointer;white-space:nowrap;transition:background .15s;
+}
+.btn-copy-link:hover{background:#08633D}
+.link-actions-row{
+  display:flex;align-items:center;justify-content:space-between;margin-top:10px;flex-wrap:wrap;gap:8px;
+}
+.btn-wa-share{
+  display:inline-flex;align-items:center;gap:6px;background:#25D366;color:#fff;font-weight:600;
+  font-size:12px;padding:6px 14px;border-radius:var(--r-sm);text-decoration:none;transition:background .15s;
+}
+.btn-wa-share:hover{background:#1EBE5D}
+.btn-open-link{
+  display:inline-flex;align-items:center;gap:6px;background:var(--ink);color:#fff;font-weight:600;
+  font-size:12px;padding:6px 14px;border-radius:var(--r-sm);text-decoration:none;transition:background .15s;cursor:pointer;border:none;
+}
+.btn-open-link:hover{background:#334155}
+.magic-link-anchor{
+  display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:12px;color:var(--green);
+  text-decoration:underline;word-break:break-all;font-weight:600;line-height:1.4;
+}
+.magic-link-anchor:hover{color:#08633D}
+.host-config-card{
+  background:var(--paper);border:1px solid var(--line);border-radius:var(--r-md);padding:10px 14px;margin-top:12px;
+}
+.host-config-header{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;flex-wrap:wrap;
+}
+.host-warning-badge{
+  margin-top:8px;padding:8px 10px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:var(--r-sm);
+  color:#92400E;font-size:11.5px;line-height:1.4;display:flex;gap:6px;align-items:flex-start;
+}
+.links-list{display:flex;flex-direction:column;gap:8px}
+.link-item-row{
+  border:1px solid var(--line);border-radius:var(--r-md);padding:10px 14px;
+  display:flex;align-items:center;justify-content:space-between;background:var(--paper);gap:10px;
+}
+.link-item-info{min-width:0}
+.link-item-name{font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px}
+.link-item-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+.pairing-code-result{
+  margin-top:14px;border:1px solid #CBD5CE;background:#FAFBF9;border-radius:var(--r-md);padding:16px;text-align:center;
+}
+.pairing-code-digits{
+  font-family:var(--mono);font-size:28px;font-weight:700;letter-spacing:.2em;color:var(--green);
+  margin:12px 0;background:#fff;padding:10px 18px;border-radius:8px;border:1px solid var(--line);
+  display:inline-block;user-select:all;
+}
+.pairing-steps-box{text-align:left;margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+.device-badge{
+  font-size:11px;font-weight:600;background:var(--blue-soft);color:var(--blue);border:1px solid #BFDBFE;
+  padding:3px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;
+}
+.select-field{
+  border:1px solid var(--line);background:var(--paper);border-radius:var(--r-sm);
+  padding:8px 10px;font:inherit;font-size:12.5px;outline:none;cursor:pointer;
+}
+
+/* Responsif */
+@media (max-width:1180px){
+  .view-inbox{grid-template-columns:310px 1fr}
+  .ctx{display:none}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:850px){
+  .login{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .brandside{padding:18px 24px}
+  .pitch,.steps{display:none}
+  .view-inbox{grid-template-columns:1fr}
+  .list{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== SCREEN 1: LOGIN / QR ==================== -->
+<div class="screen is-on" id="login">
+  <div class="login">
+    <div class="brandside">
+      <div class="mark">
+        <div class="mark-dot">K</div>
+        <div class="mark-name">Kuma<small>Admin Omnichannel</small></div>
+      </div>
+
+      <div class="linkstate" id="linkstate-badge">
+        <span class="s-dot"></span>
+        <span id="linkstate-text">Menunggu Tautan</span>
+      </div>
+
+      <div class="pitch">
+        <span class="eyebrow" style="color:var(--live)">Pusat Kendali Admin CS</span>
+        <h1>Kelola WhatsApp <em>Personal &amp; Grup</em></h1>
+        <p>Dashboard terpusat untuk membalas pesan manual oleh admin, melihat chat grup, menerima media foto/video, serta mengelola izin notifikasi per-kontak.</p>
+      </div>
+
+      <ul class="steps">
+        <li><span class="n">01</span><p><b>Buka WhatsApp</b> di ponsel Anda</p></li>
+        <li><span class="n">02</span><p>Pilih <b>Perangkat Tertaut</b> lalu klik <b>Tautkan Perangkat</b></p></li>
+        <li><span class="n">03</span><p>Arahkan kamera ke kode QR untuk menghubungkan sesi admin</p></li>
+      </ul>
+    </div>
+
+    <div class="scanside">
+      <div class="qrcard">
+        <span class="eyebrow">Pindai Kode QR</span>
+        <h2>Hubungkan Akun WhatsApp</h2>
+        <p class="sub">Kode QR diperbarui otomatis secara aman melalui enkripsi Baileys.</p>
+
+        <div class="qrframe" id="qrframe">
+          <canvas id="qr" width="220" height="220"></canvas>
+          <div class="qr-loading" id="qr-loading">
+            <div class="spinner"></div>
+            <span>Menghubungkan ke WhatsApp...</span>
+          </div>
+        </div>
+
+        <button class="enter" id="enter">Buka Dashboard Admin &rarr;</button>
+        <p style="margin:14px 0 0;font-size:12px;color:var(--muted)" id="connection-status">Memeriksa status koneksi...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SCREEN 2: DASHBOARD ADMIN ==================== -->
+<div class="screen" id="app">
+  <div class="app-layout">
+
+    <!-- Rail Navigasi Kiri -->
+    <nav class="rail">
+      <div class="logo" id="rail-logo" title="Kuma WhatsApp Admin">K</div>
+      
+      <!-- Tab Pesan (Inbox) -->
+      <button class="on" id="nav-inbox" title="Kotak Masuk (Chat)">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12a8.5 8.5 0 0 1-12.5 7.5L3 21l1.6-5A8.5 8.5 0 1 1 21 12z"/></svg>
+      </button>
+
+
+      <!-- Tab Riwayat Panggilan -->
+      <button id="nav-calls" title="Riwayat Panggilan Pelanggan">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <i class="badge-dot" id="call-unread-badge"></i>
+      </button>
+
+      <!-- Tab Kelola Multi-Akun WhatsApp -->
+      <button id="nav-accounts" title="Kelola Nomor Admin WhatsApp">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="badge-count" id="accounts-count-badge">1</span>
+      </button>
+
+      <!-- Tab Tautan Akses Device (Magic Link) -->
+      <button id="nav-links" title="Tautan Akses Perangkat (Login Tanpa QR)">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      </button>
+
+      <div class="spacer"></div>
+
+      <!-- Logout -->
+      <button title="Putus Sesi WhatsApp" id="btn-logout">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h9"/></svg>
+      </button>
+      <div class="me" id="user-badge" title="Akun Admin WhatsApp">WA</div>
+    </nav>
+
+    <!-- Konten Utama (Inbox atau Riwayat Panggilan) -->
+    <div class="view-container">
+
+      <!-- ==================== SUB-VIEW: INBOX / CHAT ==================== -->
+      <div class="view-inbox" id="view-inbox">
+        
+        <!-- Kolom 1: Daftar Percakapan (Scrollable Rollup & Rolldown) -->
+        <section class="list">
+          <div class="list-head">
+            <span class="eyebrow">WhatsApp Terhubung</span>
+            <h2>Kotak Masuk</h2>
+            <div class="search">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input placeholder="Cari kontak, grup, atau nomor..." id="search-input" />
+            </div>
+          </div>
+          <!-- Bar Filter Multi-Akun Admin -->
+          <div class="account-bar">
+            <div class="account-bar-top">
+              <span>Nomor Admin WA</span>
+              <div style="display:flex;gap:6px">
+                <button class="btn-manage-accounts" id="btn-open-links-modal" style="color:var(--blue);background:var(--blue-soft)">🔗 Link Device</button>
+                <button class="btn-manage-accounts" id="btn-open-accounts-modal">+ Nomor WA</button>
+              </div>
+            </div>
+            <div class="account-chips-wrap" id="account-filter-chips">
+              <!-- Render chip akun dinamis -->
+            </div>
+          </div>
+          <div class="filters">
+            <button class="chip on" data-filter="all">Semua <span class="num" id="filter-all-num">0</span></button>
+            <button class="chip" data-filter="personal">Personal <span class="num" id="filter-personal-num">0</span></button>
+            <button class="chip" data-filter="group">Grup <span class="num" id="filter-group-num">0</span></button>
+            <button class="chip" data-filter="unread">Belum Dibaca <span class="num" id="filter-unread-num">0</span></button>
+          </div>
+          
+          <!-- Threads (Smooth Scroll List) -->
+          <div class="threads" id="threads"></div>
+        </section>
+
+        <!-- Kolom 2: Percakapan Aktif & Balasan Admin (Ukuran Normal Proporsional) -->
+        <section class="chat">
+          
+          <!-- Banner Pengingat Izin Desktop -->
+          <div class="browser-notif-banner" id="browser-notif-banner">
+            <span>🔔 Aktifkan izin notifikasi desktop untuk menerima bunyi &amp; popup saat kontak bertanda lonceng mengirim pesan.</span>
+            <button id="btn-request-browser-notif">Aktifkan Izin</button>
+          </div>
+
+          <header class="chat-head">
+            <div class="av" id="active-av">
+              <span id="active-initials">WA</span>
+              <span class="ch"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2z"/></svg></span>
+            </div>
+            <div class="who">
+              <div style="display:flex;align-items:center;gap:6px">
+                <h3 id="active-name" style="margin:0">Pilih Percakapan</h3>
+                <button id="btn-edit-contact-name" class="ghost" style="padding:2px 6px;font-size:11px;height:auto;line-height:1.2;border-radius:4px" title="Ubah Nama Kontak">✏️ Edit</button>
+              </div>
+              <div class="status" id="active-phone"><span class="dot"></span> Menunggu percakapan</div>
+              <div id="device-banner-tag" style="display:none;margin-top:2px"></div>
+            </div>
+            
+            <div class="head-actions">
+              <!-- Tombol Cepat Izin Notifikasi Kontak Ini -->
+              <button class="ghost" id="btn-toggle-notif" title="Izin Notifikasi untuk kontak/grup ini">
+                <span id="btn-toggle-notif-icon">🔕</span>
+                <span id="btn-toggle-notif-text">Izinkan Notifikasi</span>
+              </button>
+
+              <!-- Tombol Hapus Chat -->
+              <button class="ghost danger" id="btn-delete-chat" title="Hapus Percakapan Ini">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                Hapus
+              </button>
+            </div>
+          </header>
+
+          <!-- Stream Pesan (Scrollable Vertikal Mandiri) -->
+          <div class="stream" id="message-stream">
+            <div style="margin:auto;text-align:center;color:var(--muted);padding:40px 20px">
+              <div style="width:48px;height:48px;border-radius:14px;background:var(--green-soft);color:var(--green);display:grid;place-items:center;margin:0 auto 12px">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a8.5 8.5 0 0 1-12.5 7.5L3 21l1.6-5A8.5 8.5 0 1 1 21 12z"/></svg>
+              </div>
+              <h4 style="margin:0 0 6px;color:var(--ink);font-family:var(--display);font-size:16px">Pilih Kontak atau Grup</h4>
+              <p style="margin:0;font-size:13px;max-width:32ch">Pilih salah satu percakapan di kolom kiri untuk melihat pesan teks, foto, video, dan membalas secara manual sebagai Admin.</p>
+            </div>
+          </div>
+
+          <!-- Input Balasan Admin (Tetap Tersinkronisasi) -->
+          <div class="composer">
+            <!-- Balasan Cepat (Quick Replies) -->
+            <div class="quick-replies">
+              <button class="qr-btn" data-msg="Halo kak! Ada yang bisa kami bantu hari ini? 😊">👋 Salam Pembuka</button>
+              <button class="qr-btn" data-msg="Baik kak, mohon tunggu sebentar ya, sedang kami cek. 🙏">⏳ Mohon Tunggu</button>
+              <button class="qr-btn" data-msg="Terima kasih konfirmasinya kak, pesanan segera kami proses! ✨">✓ Pesanan Diproses</button>
+              <button class="qr-btn" data-msg="Boleh tolong informasikan nomor resi atau alamat lengkapnya kak?">📍 Minta Alamat</button>
+            </div>
+            <div class="composer-sender-bar">
+              <span>Kirim pesan sebagai:</span>
+              <select id="composer-account-select" class="composer-account-select"></select>
+            </div>
+            <div class="inputrow">
+              <input id="chat-input" placeholder="Tulis balasan manual admin... (Enter untuk kirim)" autocomplete="off" />
+              <button class="send" id="btn-send" title="Kirim Balasan Admin">
+                <svg viewBox="0 0 24 24"><path d="M3 20.5 21 12 3 3.5 3 10l12 2-12 2z"/></svg>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Kolom 3: Detail Kontak & Pengaturan Notifikasi -->
+        <aside class="ctx">
+          <div class="ctx-person">
+            <div class="av" id="ctx-av">WA</div>
+            <h4 id="ctx-name">Informasi Kontak</h4>
+            <span id="ctx-phone">-</span>
+            <button id="btn-ctx-edit-name" class="ghost" style="margin-top:8px;font-size:11.5px;padding:4px 10px;width:100%;justify-content:center">✏️ Ubah Nama Kontak</button>
+          </div>
+
+          <!-- Pengaturan Izin Notifikasi Kontak Ini -->
+          <div class="block">
+            <h5>Izin Notifikasi</h5>
+            <div class="toggle-row">
+              <div>
+                <b style="display:block;font-size:13px">Bunyikan Notifikasi</b>
+                <span style="font-size:11.5px;color:var(--muted)">Hanya beri notifikasi saat kontak/grup ini chat</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="ctx-notif-switch" />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="block">
+            <h5>Detail Obrolan</h5>
+            <div class="kv"><span>Tipe Obrolan</span><b id="ctx-type">Personal</b></div>
+            <div class="kv"><span>Akun WhatsApp</span><b id="ctx-account-name">-</b></div>
+            <div class="kv"><span>Total Pesan</span><b id="ctx-msg-count">0</b></div>
+            <div class="kv"><span>Mode Balas</span><b>Admin Manual</b></div>
+            <div class="kv"><span>Sinkronisasi</span><b style="color:var(--green)">✓ Real-Time</b></div>
+          </div>
+
+          <div class="block">
+            <h5>Tindakan Cepat</h5>
+            <div class="actions" style="display:grid;gap:7px">
+              <button class="ghost" id="act-mark-read" style="width:100%;justify-content:flex-start">✓ Tandai Sudah Dibaca</button>
+              <button class="ghost danger" id="act-del-chat" style="width:100%;justify-content:flex-start">🗑️ Hapus dari Dashboard</button>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+
+      <!-- ==================== SUB-VIEW: RIWAYAT PANGGILAN ==================== -->
+      <div class="view-calls" id="view-calls">
+        <div class="calls-header">
+          <div>
+            <span class="eyebrow">WhatsApp Call Tracker</span>
+            <h2>Riwayat Panggilan Pelanggan</h2>
+          </div>
+          <div>
+            <button class="ghost danger" id="btn-clear-calls" title="Bersihkan Semua Log Panggilan">
+              Bersihkan Semua Riwayat
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Ringkasan Panggilan -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="val" id="call-stat-total">0</div>
+            <div class="lbl">Total Panggilan Masuk</div>
+          </div>
+          <div class="stat-card danger">
+            <div class="val" id="call-stat-missed">0</div>
+            <div class="lbl">Panggilan Tak Terjawab (Missed)</div>
+          </div>
+          <div class="stat-card primary">
+            <div class="val" id="call-stat-voice">0</div>
+            <div class="lbl">Panggilan Suara</div>
+          </div>
+          <div class="stat-card success">
+            <div class="val" id="call-stat-video">0</div>
+            <div class="lbl">Panggilan Video</div>
+          </div>
+        </div>
+
+        <!-- Filter Panggilan -->
+        <div class="calls-filters">
+          <button class="chip on" data-callfilter="all">Semua Panggilan</button>
+          <button class="chip" data-callfilter="missed">Tak Terjawab (Missed)</button>
+          <button class="chip" data-callfilter="voice">Panggilan Suara</button>
+          <button class="chip" data-callfilter="video">Panggilan Video</button>
+        </div>
+
+        <!-- Tabel Riwayat Panggilan -->
+        <div class="calls-table-wrap">
+          <table class="calls-table">
+            <thead>
+              <tr>
+                <th>Kontak / Pelanggan</th>
+                <th>Akun Admin</th>
+                <th>Jenis</th>
+                <th>Status</th>
+                <th>Waktu &amp; Tanggal</th>
+                <th style="text-align:right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="calls-tbody">
+              <!-- Render daftar panggilan dinamis -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==================== IN-APP TOAST CONTAINER ==================== -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ==================== LIGHTBOX MODAL (PREVIEW FOTO) ==================== -->
+<div class="lightbox" id="lightbox">
+  <div class="lightbox-content">
+    <div class="lightbox-close" id="lightbox-close">&times;</div>
+    <img id="lightbox-img" src="" alt="Preview Media" />
+  </div>
+</div>
+
+<!-- ==================== ACCOUNTS & MAGIC LINK MODAL ==================== -->
+<div class="modal-backdrop" id="accounts-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <span class="eyebrow">Multi-Akun &amp; Tautan Akses</span>
+        <h3 id="modal-main-title">Kelola Nomor &amp; Tautan Perangkat</h3>
+        <p class="modal-sub">Kelola banyak nomor WhatsApp admin dan buat link akses agar device lain langsung otomatis login.</p>
+      </div>
+      <button class="modal-close" id="accounts-modal-close" title="Tutup">&times;</button>
+    </div>
+
+    <!-- Modal Navigation Tabs -->
+    <div class="modal-tab-bar">
+      <button class="m-tab on" id="tab-btn-accounts" data-tab="accounts">📱 Nomor WhatsApp (<span id="tab-acc-count">0</span>)</button>
+      <button class="m-tab" id="tab-btn-links" data-tab="links">🔗 Tautan Akses Link (<span id="tab-link-count">0</span>)</button>
+      <button class="m-tab" id="tab-btn-pairing" data-tab="pairing">🔢 Tautkan via Kode (Tanpa QR)</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- PANE 1: DAFTAR AKUN WHATSAPP -->
+      <div class="tab-pane" id="pane-accounts">
+        <div class="accounts-section">
+          <div class="sec-title">Daftar Akun Admin Terhubung</div>
+          <div class="accounts-list" id="accounts-modal-list">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <div class="add-account-section" style="margin-top:16px">
+          <div class="sec-title">Hubungkan Nomor WhatsApp Baru (Scan QR)</div>
+          <form id="form-add-account" class="add-account-form">
+            <input type="text" id="input-new-account-name" placeholder="Nama Label Admin (misal: Admin CS 2, Sales)" required autocomplete="off" />
+            <button type="submit" class="btn-add-acc">Hubungkan Nomor &rarr;</button>
+          </form>
+
+          <!-- QR Box for New Account / Reconnect -->
+          <div class="modal-qr-box" id="modal-qr-box" style="display:none">
+            <div class="modal-qr-header">
+              <span id="modal-qr-title">Pindai Kode QR Akun Baru</span>
+              <button type="button" class="btn-cancel-qr" id="btn-cancel-qr">Tutup QR</button>
+            </div>
+            <div class="modal-qr-content">
+              <canvas id="modal-qr-canvas" width="200" height="200"></canvas>
+              <div class="modal-qr-loading" id="modal-qr-loading">
+                <div class="spinner"></div>
+                <span>Menyiapkan QR Baileys...</span>
+              </div>
+              <p class="modal-qr-desc">
+                Buka WhatsApp di HP &rarr; <b>Perangkat Tertaut</b> &rarr; <b>Tautkan Perangkat</b> &rarr; Pindai QR di atas.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE 2: PENAUTAN MELALUI LINK (MAGIC ACCESS LINK) -->
+      <div class="tab-pane" id="pane-links" style="display:none">
+        <div class="info-alert">
+          <div style="font-size:20px;line-height:1">🔗</div>
+          <div>
+            <b>Fitur Penautan Melalui Link Langsung</b><br>
+            Kirimkan link ini ke pemegang device di tempat lain. Ketika mereka mengklik link tersebut di browser HP atau laptopnya, mereka akan <b>langsung dialihkan ke dashboard dan dianggap sudah login secara otomatis</b>!
+          </div>
+        </div>
+
+        <!-- Pengaturan Domain / Host untuk Link -->
+        <div class="host-config-card">
+          <div class="host-config-header">
+            <span style="font-weight:600;display:flex;align-items:center;gap:6px">
+              🌐 Domain / Host Tautan:
+            </span>
+            <select id="select-link-host-mode" class="select-field" style="max-width:260px;font-size:12px" onchange="onLinkHostModeChanged()">
+              <option value="auto">🌐 Otomatis (URL Browser Saat Ini)</option>
+              <option value="lan">📶 WiFi / Jaringan LAN (IP Lokal)</option>
+              <option value="custom">✏️ Domain Publik / Tunnel Kustom</option>
+            </select>
+          </div>
+          <div id="custom-host-input-wrap" style="display:none;margin-top:8px">
+            <input type="text" id="input-custom-host" placeholder="Contoh: https://kuma.railway.app atau https://xxxx.ngrok-free.app" style="width:100%;border:1px solid var(--line);background:#fff;border-radius:var(--r-sm);padding:7px 10px;font-size:12px;font-family:var(--mono);outline:none" oninput="onCustomHostInputChanged()" />
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">Ketik domain publik / tunnel tanpa garis miring di akhir.</div>
+          </div>
+          <div id="localhost-host-warning" class="host-warning-badge" style="display:none">
+            <span>💡</span>
+            <div>
+              <b>Tips Akses Perangkat Lain:</b> Halaman saat ini dibuka via <code>localhost</code>. Perangkat lain di luar komputer ini tidak bisa mengakses alamat <code>localhost</code>. Silakan pilih <b>📶 WiFi / Jaringan LAN</b> jika di satu WiFi, atau gunakan <b>Hosting Publik (Railway/VPS) / Tunnel</b> agar bisa diakses dari mana saja.
+            </div>
+          </div>
+        </div>
+
+        <div class="sec-title" style="margin-top:16px">Buat Tautan Akses Device Baru</div>
+        <form id="form-create-link" style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:grid;grid-template-columns:1fr 140px auto;gap:8px">
+            <input type="text" id="input-link-device" placeholder="Nama Perangkat (misal: HP Mas Budi, CS Maya)" required autocomplete="off" style="border:1px solid var(--line);background:var(--paper);border-radius:var(--r-sm);padding:9px 12px;font:inherit;font-size:13px;outline:none" />
+            <select id="select-link-expiry" class="select-field">
+              <option value="">Selamanya (Permanen)</option>
+              <option value="24">24 Jam</option>
+              <option value="168">7 Hari</option>
+              <option value="720">30 Hari</option>
+            </select>
+            <button type="submit" class="btn-add-acc" style="white-space:nowrap">🔗 Buat Link</button>
+          </div>
+        </form>
+
+        <!-- Box Hasil Tautan Baru -->
+        <div class="generated-link-card" id="generated-link-card" style="display:none">
+          <div class="link-card-header">
+            <span class="eyebrow" style="color:var(--green)">✓ Tautan Akses Siap Digunakan</span>
+            <span id="gen-device-name" style="font-weight:600;font-size:12px;color:var(--ink)"></span>
+          </div>
+
+          <!-- Clickable Link Box -->
+          <div style="background:#fff;border:1px solid #86EFAC;border-radius:var(--r-sm);padding:10px 12px;margin:8px 0">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Klik link di bawah ini untuk membuka langsung di tab baru:</div>
+            <a href="#" target="_blank" id="gen-link-anchor" class="magic-link-anchor">
+              <span id="gen-link-text"></span>
+              <span style="font-size:13px">↗</span>
+            </a>
+          </div>
+
+          <div class="link-display-row">
+            <input type="text" id="gen-link-input" readonly />
+            <button type="button" class="btn-copy-link" id="btn-copy-gen-link">📋 Salin Link</button>
+          </div>
+          <div class="link-actions-row">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <a href="#" target="_blank" id="btn-wa-share" class="btn-wa-share">
+                📲 Kirim via WhatsApp
+              </a>
+              <button type="button" id="btn-open-link-direct" class="btn-open-link">
+                🚀 Buka Tautan Langsung
+              </button>
+            </div>
+            <span style="font-size:11.5px;color:var(--muted)">Buka link di HP penerima untuk otomatis login.</span>
+          </div>
+        </div>
+
+        <div class="sec-title" style="margin-top:20px">Daftar Link Akses Perangkat Aktif</div>
+        <div class="links-list" id="links-list-container">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- PANE 3: TAUTKAN WHATSAPP VIA KODE (PAIRING CODE TANPA QR) -->
+      <div class="tab-pane" id="pane-pairing" style="display:none">
+        <div class="info-alert">
+          <div style="font-size:20px;line-height:1">🔢</div>
+          <div>
+            <b>Tautkan WhatsApp Target Tanpa Scan QR (Pairing Code)</b><br>
+            Jika ponsel admin dipegang orang lain dan tidak bisa memindai QR code di layar Anda, masukkan nomor WhatsApp target di bawah ini. Sistem akan meminta kode 8 digit untuk diketikkan langsung di WhatsApp ponsel target.
+          </div>
+        </div>
+
+        <div class="sec-title" style="margin-top:16px">Minta Kode Penautan 8-Digit</div>
+        <form id="form-request-pairing" style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:grid;grid-template-columns:160px 1fr auto;gap:8px">
+            <select id="select-pairing-account" class="select-field">
+              <!-- Populated by JS -->
+            </select>
+            <input type="text" id="input-pairing-phone" placeholder="Nomor WhatsApp dengan kode negara (contoh: 628123456789)" required autocomplete="off" style="border:1px solid var(--line);background:var(--paper);border-radius:var(--r-sm);padding:9px 12px;font:inherit;font-size:13px;outline:none" />
+            <button type="submit" class="btn-add-acc" id="btn-submit-pairing" style="white-space:nowrap">Minta Kode</button>
+          </div>
+        </form>
+
+        <div class="pairing-code-result" id="pairing-code-result" style="display:none">
+          <span class="eyebrow" style="color:var(--green)">Kode Penautan WhatsApp Berhasil Diterima</span>
+          <div>
+            <span class="pairing-code-digits" id="pairing-code-digits">---- ----</span>
+          </div>
+          <button type="button" class="btn-copy-link" id="btn-copy-pairing-code" style="padding:6px 14px;font-size:12px;margin-bottom:10px">📋 Salin Kode 8-Digit</button>
+          
+          <div class="pairing-steps-box">
+            <b>Langkah di Ponsel Pemegang WhatsApp:</b>
+            <ol style="margin:8px 0 0;padding-left:20px;font-size:12.5px;color:var(--muted);line-height:1.6">
+              <li>Buka WhatsApp di ponsel target &rarr; Menu titik tiga (atau Pengaturan).</li>
+              <li>Pilih <b>Perangkat Tertaut</b> &rarr; Klik <b>Tautkan Perangkat</b>.</li>
+              <li>Di bawah jendela pemindai kamera, klik tulisan <b>"Tautkan dengan nomor telepon saja"</b>.</li>
+              <li>Ketikkan kode 8 karakter di atas. WhatsApp akan langsung tertaut ke Kuma!</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==================== STATE MANAGEMENT ==================== */
+let ws;
+let currentChats = [];
+let currentCalls = [];
+let currentAccounts = [];
+let currentLinks = [];
+let activeKey = null;
+let activeJid = null;
+let activeAccountId = null;
+let currentChatFilter = 'all';
+let currentCallFilter = 'all';
+let selectedAccountFilter = 'all';
+let activeView = 'inbox'; // 'inbox' | 'calls'
+let activeQrAccountId = null;
+let isDeviceAuthenticated = false;
+
+/* ==================== AUTO-LOGIN VIA MAGIC LINK ==================== */
+(function checkAutoLogin() {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('auth_token')) {
+    const token = urlParams.get('auth_token');
+    const device = urlParams.get('device') || 'Perangkat Tautan';
+    localStorage.setItem('kuma_auth_token', token);
+    localStorage.setItem('kuma_device_name', device);
+    isDeviceAuthenticated = true;
+    window.history.replaceState({}, document.title, window.location.pathname);
+    showScreen('app');
+    updateDeviceBadge(device);
+    setTimeout(() => {
+      showToast('Perangkat Terhubung', `Anda masuk melalui tautan resmi sebagai: ${device}`);
+    }, 400);
+  } else if (localStorage.getItem('kuma_auth_token')) {
+    isDeviceAuthenticated = true;
+    showScreen('app');
+    const storedDevice = localStorage.getItem('kuma_device_name') || 'Perangkat Tautan';
+    updateDeviceBadge(storedDevice);
+
+    fetch('/api/auth/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: localStorage.getItem('kuma_auth_token') })
+    }).then(r => r.json()).then(res => {
+      if (!res.ok) {
+        localStorage.removeItem('kuma_auth_token');
+        localStorage.removeItem('kuma_device_name');
+        isDeviceAuthenticated = false;
+        alert('Tautan akses perangkat Anda telah kedaluwarsa atau dicabut.');
+        showScreen('login');
+      } else {
+        updateDeviceBadge(res.deviceName);
+      }
+    }).catch(() => {});
+  }
+})();
+
+function updateDeviceBadge(deviceName) {
+  const banner = document.getElementById('device-banner-tag');
+  if (banner && deviceName) {
+    banner.style.display = 'inline-block';
+    banner.innerHTML = `<span class="device-badge" title="Tautan Perangkat Resmi">📱 ${escapeHtml(deviceName)} (Online)</span>`;
+  }
+}
+
+/* ==================== AUDIO CHIME GENERATOR (WEB AUDIO API) ==================== */
+function playNotificationChime() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+
+    // Nada pertama (587.33 Hz - D5)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(587.33, ctx.currentTime);
+    gain1.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(ctx.currentTime);
+    osc1.stop(ctx.currentTime + 0.35);
+
+    // Nada kedua (880.00 Hz - A5)
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(880.0, ctx.currentTime + 0.12);
+    gain2.gain.setValueAtTime(0.25, ctx.currentTime + 0.12);
+    gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(ctx.currentTime + 0.12);
+    osc2.stop(ctx.currentTime + 0.55);
+  } catch (err) {
+    console.warn('[Audio] Gagal membunyikan chime notifikasi:', err);
+  }
+}
+
+/* ==================== DESKTOP & TOAST NOTIFICATION ==================== */
+function checkBrowserNotificationPermission() {
+  const banner = document.getElementById('browser-notif-banner');
+  if (!('Notification' in window)) {
+    if (banner) banner.style.display = 'none';
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    if (banner) banner.style.display = 'none';
+  } else if (Notification.permission === 'default') {
+    if (banner) banner.style.display = 'flex';
+  } else {
+    if (banner) banner.style.display = 'none';
+  }
+}
+
+document.getElementById('btn-request-browser-notif').onclick = async () => {
+  if ('Notification' in window) {
+    const res = await Notification.requestPermission();
+    checkBrowserNotificationPermission();
+    if (res === 'granted') {
+      showToast('Izin Diterima', 'Notifikasi browser untuk pesan penting sekarang aktif!');
+      playNotificationChime();
+    }
+  }
+};
+
+function triggerIncomingNotification(chat, message) {
+  if (!chat || !chat.notifyEnabled) {
+    return;
+  }
+
+  playNotificationChime();
+
+  const title = `Pesan Baru dari ${chat.name || chat.phone}`;
+  const body = message.text || (message.media ? `[${message.media.type}] Mengirim media` : 'Pesan baru diterima');
+
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try {
+      const notif = new Notification(title, {
+        body: body,
+        icon: '/media/favicon.png',
+        tag: chat.key || chat.jid
+      });
+      notif.onclick = () => {
+        window.focus();
+        selectChat(chat.key || chat.jid);
+        notif.close();
+      };
+    } catch (e) {
+      console.warn('[Notif] Gagal menampilkan desktop notification:', e);
+    }
+  }
+
+  showToast(title, body, chat.key || chat.jid);
+}
+
+function showToast(title, body, chatIdentifier) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `
+    <div style="font-size:20px;line-height:1">🔔</div>
+    <div style="flex:1;overflow:hidden">
+      <b style="display:block;font-size:13px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(title)}</b>
+      <span style="font-size:12px;opacity:.85;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(body)}</span>
+    </div>
+  `;
+  el.onclick = () => {
+    if (chatIdentifier) selectChat(chatIdentifier);
+    el.remove();
+  };
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 5000);
+}
+
+/* ==================== WEBSOCKET CONNECTION ==================== */
+function connectWS() {
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = `${protocol}//${window.location.host}`;
+  ws = new WebSocket(wsUrl);
+
+  ws.onopen = () => {
+    console.log('[WS] Terhubung ke server WhatsApp Admin');
+    document.getElementById('connection-status').textContent = 'Server terhubung...';
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      handleServerEvent(data);
+    } catch (e) {
+      console.error('[WS] Parse error:', e);
+    }
+  };
+
+  ws.onclose = () => {
+    console.warn('[WS] Koneksi terputus, mencoba kembali dalam 2 detik...');
+    document.getElementById('connection-status').textContent = 'Mencoba terhubung ulang...';
+    setTimeout(connectWS, 2000);
+  };
+}
+
+function handleServerEvent(data) {
+  if (data.type === 'init') {
+    if (data.accounts) {
+      currentAccounts = data.accounts;
+      renderAccountsModal();
+      renderAccountFilterChips();
+      updateComposerAccountSelect();
+      updateAccountsBadge();
+      updatePairingAccountsSelect();
+    }
+    if (data.links) {
+      currentLinks = data.links;
+      renderLinksList();
+    }
+    if (data.localIp) {
+      serverLocalIp = data.localIp;
+      updateHostSelectorOptions();
+    }
+    if (data.chats) {
+      currentChats = data.chats;
+      renderThreads();
+    }
+    if (data.calls) {
+      currentCalls = data.calls;
+      renderCalls();
+    }
+    if (data.qr) {
+      displayQR(data.qr);
+    }
+
+    if (isDeviceAuthenticated) {
+      showScreen('app');
+    } else {
+      updateConnectionUI(data.state, data.user);
+    }
+    checkBrowserNotificationPermission();
+  }
+
+  else if (data.type === 'accounts_updated') {
+    currentAccounts = data.accounts || [];
+    renderAccountsModal();
+    renderAccountFilterChips();
+    updateComposerAccountSelect();
+    updateAccountsBadge();
+    updatePairingAccountsSelect();
+  }
+
+  else if (data.type === 'tokens_updated') {
+    currentLinks = data.tokens || [];
+    renderLinksList();
+  }
+
+  else if (data.type === 'auth_link_created') {
+    if (data.link) {
+      showGeneratedLinkCard(data.link);
+    }
+  }
+
+  else if (data.type === 'pairing_code_response' || data.type === 'pairing_code') {
+    if (data.code) {
+      displayPairingCode(data.code);
+    }
+  }
+
+  else if (data.type === 'account_status') {
+    const idx = currentAccounts.findIndex(a => a.id === data.accountId);
+    if (idx >= 0) {
+      currentAccounts[idx].state = data.state;
+      if (data.user) currentAccounts[idx].user = data.user;
+      if (data.phone) currentAccounts[idx].phone = data.phone;
+    }
+    renderAccountsModal();
+    renderAccountFilterChips();
+    updateComposerAccountSelect();
+    updateAccountsBadge();
+
+    if (data.state === 'open') {
+      showToast('WhatsApp Terhubung', `Akun "${data.name || 'Admin'}" (+${(data.user?.id || '').split(':')[0]}) berhasil terhubung!`);
+      hideModalQr();
+      showScreen('app');
+    }
+  }
+
+  else if (data.type === 'account_qr') {
+    if (activeQrAccountId === data.accountId || document.getElementById('modal-qr-box').style.display !== 'none') {
+      displayModalQR(data.qr);
+    }
+  }
+
+  else if (data.type === 'qr') {
+    displayQR(data.qr);
+  }
+
+  else if (data.type === 'status') {
+    if (!isDeviceAuthenticated) {
+      updateConnectionUI(data.state, data.user);
+      if (data.state === 'open') {
+        showScreen('app');
+      } else if (data.loggedOut && !currentAccounts.some(a => a.state === 'open')) {
+        showScreen('login');
+        document.getElementById('qr-loading').style.display = 'flex';
+      }
+    }
+  }
+
+  else if (data.type === 'new_message') {
+    const { accountId, jid, message, chat } = data;
+    const chatKey = chat.key || (accountId ? `${accountId}:${jid}` : jid);
+    const idx = currentChats.findIndex(c => (c.key && c.key === chatKey) || (c.jid === jid && c.accountId === accountId));
+
+    if (idx >= 0) {
+      chat.notifyEnabled = currentChats[idx].notifyEnabled ?? chat.notifyEnabled;
+      currentChats[idx] = chat;
+    } else {
+      currentChats.unshift(chat);
+    }
+    renderThreads();
+    renderAccountFilterChips();
+
+    if (activeKey === chatKey || (activeJid === jid && (!activeAccountId || activeAccountId === accountId))) {
+      appendMessageToStream(message);
+      updateContextSidebar(chat);
+    }
+
+    if (!message.fromMe) {
+      const targetChat = currentChats.find(c => (c.key && c.key === chatKey) || c.jid === jid) || chat;
+      triggerIncomingNotification(targetChat, message);
+    }
+  }
+
+  else if (data.type === 'chat_updated') {
+    const chat = data.chat;
+    const chatKey = chat.key || chat.jid;
+    const idx = currentChats.findIndex(c => (c.key && c.key === chatKey) || (c.jid === chat.jid && c.accountId === chat.accountId));
+
+    if (idx >= 0) {
+      currentChats[idx] = chat;
+    } else {
+      currentChats.unshift(chat);
+    }
+    renderThreads();
+    if (activeKey === chatKey || (activeJid === chat.jid && (!activeAccountId || activeAccountId === chat.accountId))) {
+      updateActiveChatHeader(chat);
+      updateContextSidebar(chat);
+    }
+  }
+
+  else if (data.type === 'chats_synced') {
+    currentChats = data.chats || [];
+    renderThreads();
+    renderAccountFilterChips();
+    if (activeKey || activeJid) {
+      const activeChat = currentChats.find(c => (c.key && c.key === activeKey) || c.jid === activeJid);
+      if (activeChat) {
+        renderMessageStream(activeChat);
+        updateContextSidebar(activeChat);
+      } else if (currentChats.length > 0) {
+        selectChat(currentChats[0].key || currentChats[0].jid);
+      }
+    } else if (currentChats.length > 0) {
+      selectChat(currentChats[0].key || currentChats[0].jid);
+    }
+  }
+
+  else if (data.type === 'calls_updated') {
+    currentCalls = data.calls || [];
+    renderCalls();
+  }
+}
+
+/* ==================== MULTI-ACCOUNT & LINKS MANAGEMENT ==================== */
+function updateAccountsBadge() {
+  const badge = document.getElementById('accounts-count-badge');
+  const userBadge = document.getElementById('user-badge');
+  const openCount = currentAccounts.filter(a => a.state === 'open').length;
+
+  if (badge) {
+    badge.textContent = currentAccounts.length;
+    if (openCount > 0) {
+      badge.style.background = 'var(--green)';
+    } else {
+      badge.style.background = 'var(--amber)';
+    }
+  }
+  if (userBadge) {
+    userBadge.textContent = openCount > 0 ? `${openCount}WA` : 'WA';
+  }
+  const tabAccCount = document.getElementById('tab-acc-count');
+  if (tabAccCount) tabAccCount.textContent = currentAccounts.length;
+}
+
+function renderAccountFilterChips() {
+  const wrap = document.getElementById('account-filter-chips');
+  if (!wrap) return;
+
+  const totalAll = currentChats.length;
+  let html = `
+    <button class="acc-chip ${selectedAccountFilter === 'all' ? 'on' : ''}" onclick="setAccountFilter('all')">
+      <span class="dot-status"></span> Semua Akun <small>(${totalAll})</small>
+    </button>
+  `;
+
+  currentAccounts.forEach(acc => {
+    const isSelected = selectedAccountFilter === acc.id;
+    const count = currentChats.filter(c => (c.accountId || 'acc_1') === acc.id).length;
+    const isOpen = acc.state === 'open';
+    html += `
+      <button class="acc-chip ${isSelected ? 'on' : ''}" onclick="setAccountFilter('${acc.id}')" title="${escapeHtml(acc.name)} (${acc.phone || 'Belum tertaut'})">
+        <span class="dot-status" style="background:${isOpen ? 'var(--live)' : '#94A3B8'}"></span>
+        ${escapeHtml(acc.name)} <small>(${count})</small>
+      </button>
+    `;
+  });
+
+  wrap.innerHTML = html;
+}
+
+function setAccountFilter(accId) {
+  selectedAccountFilter = accId;
+  renderAccountFilterChips();
+  renderThreads();
+}
+
+function updateComposerAccountSelect() {
+  const sel = document.getElementById('composer-account-select');
+  if (!sel) return;
+
+  const prev = sel.value;
+  sel.innerHTML = currentAccounts.map(acc => {
+    const statusText = acc.state === 'open' ? '🟢 Aktif' : '⚪ Terputus';
+    return `<option value="${acc.id}">${escapeHtml(acc.name)} (${acc.phone || statusText})</option>`;
+  }).join('');
+
+  if (prev && currentAccounts.some(a => a.id === prev)) {
+    sel.value = prev;
+  } else if (activeAccountId && currentAccounts.some(a => a.id === activeAccountId)) {
+    sel.value = activeAccountId;
+  }
+}
+
+function updatePairingAccountsSelect() {
+  const sel = document.getElementById('select-pairing-account');
+  if (!sel) return;
+  sel.innerHTML = currentAccounts.map(acc => {
+    return `<option value="${acc.id}">${escapeHtml(acc.name)}</option>`;
+  }).join('');
+}
+
+function openAccountsModal(defaultTab = 'accounts') {
+  renderAccountsModal();
+  renderLinksList();
+  updatePairingAccountsSelect();
+  switchModalTab(defaultTab);
+  document.getElementById('accounts-modal').classList.add('is-open');
+}
+
+function closeAccountsModal() {
+  document.getElementById('accounts-modal').classList.remove('is-open');
+  hideModalQr();
+}
+
+function switchModalTab(tabName) {
+  document.querySelectorAll('.m-tab').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
+
+  if (tabName === 'accounts') {
+    document.getElementById('tab-btn-accounts').classList.add('on');
+    document.getElementById('pane-accounts').style.display = 'flex';
+  } else if (tabName === 'links') {
+    document.getElementById('tab-btn-links').classList.add('on');
+    document.getElementById('pane-links').style.display = 'flex';
+    updateLocalhostWarning();
+  } else if (tabName === 'pairing') {
+    document.getElementById('tab-btn-pairing').classList.add('on');
+    document.getElementById('pane-pairing').style.display = 'flex';
+  }
+}
+
+// Event tab clicks
+document.getElementById('tab-btn-accounts').onclick = () => switchModalTab('accounts');
+document.getElementById('tab-btn-links').onclick = () => switchModalTab('links');
+document.getElementById('tab-btn-pairing').onclick = () => switchModalTab('pairing');
+
+function renderAccountsModal() {
+  const listEl = document.getElementById('accounts-modal-list');
+  if (!listEl) return;
+
+  if (currentAccounts.length === 0) {
+    listEl.innerHTML = `<p style="color:var(--muted);font-size:13px;padding:8px 0">Belum ada akun admin WhatsApp yang terdaftar.</p>`;
+    return;
+  }
+
+  listEl.innerHTML = currentAccounts.map(acc => {
+    const isOpen = acc.state === 'open';
+    const isConn = acc.state === 'connecting';
+    let statusClass = 'disconnected';
+    let statusLabel = 'Terputus';
+
+    if (isOpen) {
+      statusClass = 'open';
+      statusLabel = '🟢 Terhubung';
+    } else if (isConn) {
+      statusClass = 'connecting';
+      statusLabel = '🟡 Menghubungkan';
+    }
+
+    const defaultBadge = acc.isDefault ? `<span style="font-size:10px;background:#E2E8F0;color:#475569;padding:1px 5px;border-radius:4px;font-weight:600">Utama</span>` : '';
+
+    return `
+      <div class="account-item-card ${isOpen ? 'is-open' : ''}">
+        <div class="acc-card-info">
+          <div class="acc-card-avatar ${isOpen ? 'open' : ''}">
+            ${(acc.name || 'WA').slice(0, 2).toUpperCase()}
+          </div>
+          <div class="acc-card-texts">
+            <div class="acc-card-name">
+              <span>${escapeHtml(acc.name)}</span>
+              ${defaultBadge}
+              <button class="ghost" style="padding:1px 5px;font-size:11px" onclick="promptRenameAccount('${acc.id}', '${escapeHtml(acc.name)}')">✏️</button>
+            </div>
+            <div class="acc-card-phone">
+              ${acc.phone ? escapeHtml(acc.phone) : 'Belum ada nomor telepon'} · <span class="status-pill ${statusClass}">${statusLabel}</span>
+            </div>
+          </div>
+        </div>
+        <div class="acc-card-actions">
+          ${!isOpen ? `
+            <button class="ghost" style="font-size:12px;padding:4px 8px;font-weight:600;color:var(--green)" onclick="showAccountQr('${acc.id}', '${escapeHtml(acc.name)}')">
+              📱 Pindai QR
+            </button>
+          ` : ''}
+          <button class="ghost danger" style="font-size:12px;padding:4px 8px" onclick="confirmDeleteAccount('${acc.id}', '${escapeHtml(acc.name)}')">
+            ${acc.isDefault ? 'Putus Sesi' : 'Hapus'}
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ==================== MAGIC ACCESS LINKS UI ==================== */
+let serverLocalIp = null;
+let lastGeneratedLinkObj = null;
+
+function getBaseLinkUrl() {
+  const modeEl = document.getElementById('select-link-host-mode');
+  const mode = modeEl ? modeEl.value : 'auto';
+
+  if (mode === 'lan' && serverLocalIp) {
+    const port = window.location.port ? `:${window.location.port}` : ':8080';
+    return `${window.location.protocol}//${serverLocalIp}${port}`;
+  }
+  if (mode === 'custom') {
+    const customVal = (document.getElementById('input-custom-host')?.value || '').trim();
+    if (customVal) {
+      let trimmed = customVal.replace(/\/+$/, '');
+      if (!/^https?:\/\//i.test(trimmed)) {
+        trimmed = `${window.location.protocol}//` + trimmed;
+      }
+      return trimmed;
+    }
+  }
+  return window.location.origin;
+}
+
+function updateLocalhostWarning() {
+  const warn = document.getElementById('localhost-host-warning');
+  if (!warn) return;
+  const base = getBaseLinkUrl();
+  if (base.includes('localhost') || base.includes('127.0.0.1')) {
+    warn.style.display = 'flex';
+  } else {
+    warn.style.display = 'none';
+  }
+}
+
+function updateHostSelectorOptions() {
+  const lanOption = document.querySelector('#select-link-host-mode option[value="lan"]');
+  if (lanOption && serverLocalIp) {
+    const port = window.location.port ? `:${window.location.port}` : ':8080';
+    lanOption.textContent = `📶 WiFi / Jaringan LAN (${serverLocalIp}${port})`;
+  }
+  updateLocalhostWarning();
+}
+
+function onLinkHostModeChanged() {
+  const modeEl = document.getElementById('select-link-host-mode');
+  const customWrap = document.getElementById('custom-host-input-wrap');
+  if (customWrap && modeEl) {
+    customWrap.style.display = modeEl.value === 'custom' ? 'block' : 'none';
+  }
+  updateLocalhostWarning();
+  if (lastGeneratedLinkObj) {
+    showGeneratedLinkCard(lastGeneratedLinkObj);
+  }
+  renderLinksList();
+}
+
+function onCustomHostInputChanged() {
+  updateLocalhostWarning();
+  if (lastGeneratedLinkObj) {
+    showGeneratedLinkCard(lastGeneratedLinkObj);
+  }
+  renderLinksList();
+}
+
+function renderLinksList() {
+  const container = document.getElementById('links-list-container');
+  const countEl = document.getElementById('tab-link-count');
+  if (countEl) countEl.textContent = currentLinks.length;
+  if (!container) return;
+
+  if (currentLinks.length === 0) {
+    container.innerHTML = `
+      <div style="padding:20px;text-align:center;color:var(--muted);background:var(--paper);border-radius:var(--r-md);font-size:12.5px">
+        Belum ada tautan akses perangkat yang dibuat. Buat link di atas untuk membagikan akses langsung ke dashboard tanpa QR!
+      </div>
+    `;
+    return;
+  }
+
+  const baseOrigin = getBaseLinkUrl();
+
+  container.innerHTML = currentLinks.map(l => {
+    const isExpired = Boolean(l.isExpired);
+    const fullUrl = `${baseOrigin}/join/${l.token}`;
+    const dateStr = new Date(l.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    const accessedStr = l.lastAccessedAt ? new Date(l.lastAccessedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : 'Belum pernah';
+
+    return `
+      <div class="link-item-row" style="${isExpired ? 'opacity:.6' : ''}">
+        <div class="link-item-info" style="flex:1;min-width:0">
+          <div class="link-item-name">
+            <span>${escapeHtml(l.deviceName)}</span>
+            <span class="status-pill ${isExpired ? 'disconnected' : 'open'}">${isExpired ? 'Kedaluwarsa' : '🟢 Aktif'}</span>
+          </div>
+          <div style="margin-top:4px">
+            <a href="${fullUrl}" target="_blank" class="magic-link-anchor" style="font-size:11.5px" title="Klik untuk membuka tautan ini langsung di tab baru">
+              ${escapeHtml(fullUrl)} ↗
+            </a>
+          </div>
+          <div class="link-item-sub">
+            Dibuat: ${dateStr} · Diakses: ${accessedStr} (${l.accessCount || 0}x)
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+          ${!isExpired ? `
+            <button class="ghost" style="font-size:12px;padding:4px 8px;color:var(--green);font-weight:600" onclick="copyMagicLinkText('${fullUrl}', '${escapeHtml(l.deviceName)}')">
+              📋 Salin
+            </button>
+            <button class="ghost" style="font-size:12px;padding:4px 8px;color:var(--ink);font-weight:600" onclick="window.open('${fullUrl}', '_blank')">
+              🚀 Buka
+            </button>
+          ` : ''}
+          <button class="ghost danger" style="font-size:12px;padding:4px 8px" onclick="confirmRevokeLink('${l.id}', '${escapeHtml(l.deviceName)}')">
+            Cabut
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function showGeneratedLinkCard(linkObj) {
+  lastGeneratedLinkObj = linkObj;
+  const card = document.getElementById('generated-link-card');
+  const input = document.getElementById('gen-link-input');
+  const nameEl = document.getElementById('gen-device-name');
+  const shareBtn = document.getElementById('btn-wa-share');
+  const anchor = document.getElementById('gen-link-anchor');
+  const textEl = document.getElementById('gen-link-text');
+  const directBtn = document.getElementById('btn-open-link-direct');
+  if (!card) return;
+
+  const baseOrigin = getBaseLinkUrl();
+  const fullUrl = `${baseOrigin}/join/${linkObj.token}`;
+
+  input.value = fullUrl;
+  nameEl.textContent = `Untuk: ${linkObj.deviceName}`;
+  if (anchor) anchor.href = fullUrl;
+  if (textEl) textEl.textContent = fullUrl;
+
+  const shareText = `Halo! Ini tautan resmi akses ke Dashboard Kuma WhatsApp Admin:\n${fullUrl}\n\nCukup klik tautan di atas dan Anda akan langsung dialihkan ke dashboard serta otomatis dianggap sudah login.`;
+  if (shareBtn) shareBtn.href = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+
+  if (directBtn) {
+    directBtn.onclick = () => window.open(fullUrl, '_blank');
+  }
+
+  card.style.display = 'block';
+  copyMagicLinkText(fullUrl, linkObj.deviceName);
+}
+
+function copyMagicLinkText(url, deviceName) {
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('Link Disalin ke Clipboard!', `Tautan untuk ${deviceName || 'perangkat'} siap dibagikan.`);
+  }).catch(() => {
+    const input = document.getElementById('gen-link-input');
+    if (input) {
+      input.select();
+      document.execCommand('copy');
+      showToast('Link Disalin', 'Tautan akses siap dibagikan.');
+    }
+  });
+}
+
+function confirmRevokeLink(id, name) {
+  if (confirm(`Yakin ingin mencabut tautan akses untuk "${name}"? Perangkat pemegang link ini tidak akan bisa login lagi.`)) {
+    if (ws && ws.readyState === 1) {
+      ws.send(JSON.stringify({ type: 'revoke_auth_link', tokenId: id }));
+    } else {
+      fetch(`/api/links/${id}`, { method: 'DELETE' });
+    }
+    const idx = currentLinks.findIndex(l => l.id === id);
+    if (idx >= 0) currentLinks.splice(idx, 1);
+    renderLinksList();
+    showToast('Tautan Dicabut', `Akses untuk "${name}" telah dinonaktifkan.`);
+  }
+}
+
+document.getElementById('form-create-link').onsubmit = e => {
+  e.preventDefault();
+  const nameInput = document.getElementById('input-link-device');
+  const expirySelect = document.getElementById('select-link-expiry');
+  const deviceName = (nameInput.value || '').trim();
+  const expiresHours = expirySelect.value ? Number(expirySelect.value) : null;
+  if (!deviceName) return;
+
+  if (ws && ws.readyState === 1) {
+    ws.send(JSON.stringify({
+      type: 'create_auth_link',
+      deviceName,
+      expiresHours
+    }));
+  } else {
+    fetch('/api/links', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deviceName, expiresHours })
+    }).then(r => r.json()).then(res => {
+      if (res.ok) showGeneratedLinkCard(res.link);
+    });
+  }
+  nameInput.value = '';
+};
+
+document.getElementById('btn-copy-gen-link').onclick = () => {
+  const input = document.getElementById('gen-link-input');
+  if (input && input.value) {
+    copyMagicLinkText(input.value, 'perangkat');
+  }
+};
+
+/* ==================== PAIRING CODE (TANPA SCAN QR) ==================== */
+document.getElementById('form-request-pairing').onsubmit = e => {
+  e.preventDefault();
+  const selAcc = document.getElementById('select-pairing-account');
+  const phoneInput = document.getElementById('input-pairing-phone');
+  const submitBtn = document.getElementById('btn-submit-pairing');
+
+  const accountId = selAcc.value || 'acc_1';
+  const phone = (phoneInput.value || '').trim();
+  if (!phone) return;
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Meminta Kode...';
+
+  if (ws && ws.readyState === 1) {
+    ws.send(JSON.stringify({
+      type: 'request_pairing_code',
+      accountId,
+      phone
+    }));
+  } else {
+    fetch(`/api/accounts/${accountId}/pairing-code`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone })
+    }).then(r => r.json()).then(res => {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Dapatkan Kode';
+      if (res.ok && res.code) {
+        displayPairingCode(res.code);
+      } else {
+        alert('Gagal mendapatkan kode penautan: ' + (res.error || 'Terjadi kesalahan'));
+      }
+    }).catch(err => {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Dapatkan Kode';
+      alert('Error: ' + err.message);
+    });
+  }
+
+  setTimeout(() => {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Dapatkan Kode';
+  }, 4000);
+};
+
+function displayPairingCode(code) {
+  const resultBox = document.getElementById('pairing-code-result');
+  const digitsEl = document.getElementById('pairing-code-digits');
+  if (!resultBox || !digitsEl) return;
+
+  // Format kode dengan spasi di tengah: "1234-5678" -> "1234 5678"
+  const formatted = code.length === 8 ? `${code.slice(0, 4)} - ${code.slice(4)}` : code;
+  digitsEl.textContent = formatted;
+  resultBox.style.display = 'block';
+
+  showToast('Kode Penautan Diterima!', `Kode: ${code}. Masukkan di WhatsApp target.`);
+}
+
+document.getElementById('btn-copy-pairing-code').onclick = () => {
+  const digits = document.getElementById('pairing-code-digits').textContent.replace(/[^a-zA-Z0-9]/g, '');
+  navigator.clipboard.writeText(digits).then(() => {
+    showToast('Kode Disalin', `Kode ${digits} telah disalin ke clipboard.`);
+  });
+};
+
+/* ==================== QR & SCREEN HELPERS ==================== */
+function showAccountQr(accId, name) {
+  activeQrAccountId = accId;
+  const qrBox = document.getElementById('modal-qr-box');
+  const loading = document.getElementById('modal-qr-loading');
+  const title = document.getElementById('modal-qr-title');
+
+  qrBox.style.display = 'block';
+  loading.style.display = 'flex';
+  title.textContent = `Pindai Kode QR Akun "${name}"`;
+
+  const acc = currentAccounts.find(a => a.id === accId);
+  if (acc && acc.qr) {
+    displayModalQR(acc.qr);
+  } else {
+    const cv = document.getElementById('modal-qr-canvas');
+    const cx = cv.getContext('2d');
+    cx.clearRect(0, 0, cv.width, cv.height);
+    if (ws && ws.readyState === 1) {
+      ws.send(JSON.stringify({ type: 'refresh_qr', accountId: accId }));
+    }
+  }
+}
+
+function hideModalQr() {
+  activeQrAccountId = null;
+  const qrBox = document.getElementById('modal-qr-box');
+  if (qrBox) qrBox.style.display = 'none';
+}
+
+function displayModalQR(qrDataUrl) {
+  const loading = document.getElementById('modal-qr-loading');
+  if (loading) loading.style.display = 'none';
+
+  const cv = document.getElementById('modal-qr-canvas');
+  if (!cv) return;
+  const cx = cv.getContext('2d');
+  const img = new Image();
+  img.onload = () => {
+    cx.clearRect(0, 0, cv.width, cv.height);
+    cx.drawImage(img, 0, 0, cv.width, cv.height);
+  };
+  img.src = qrDataUrl;
+}
+
+function confirmDeleteAccount(accId, name) {
+  const acc = currentAccounts.find(a => a.id === accId);
+  const msg = acc?.isDefault
+    ? `Putuskan sesi WhatsApp untuk akun utama "${name}"?`
+    : `Yakin ingin menghapus akun admin "${name}"? Sesi akan diputuskan dan dihapus.`;
+
+  if (confirm(msg)) {
+    if (ws && ws.readyState === 1) {
+      if (acc?.isDefault) {
+        ws.send(JSON.stringify({ type: 'logout', accountId: accId }));
+      } else {
+        ws.send(JSON.stringify({ type: 'delete_account', accountId: accId }));
+      }
+    }
+    const idx = currentAccounts.findIndex(a => a.id === accId);
+    if (idx >= 0) {
+      if (acc?.isDefault) {
+        currentAccounts[idx].state = 'disconnected';
+      } else {
+        currentAccounts.splice(idx, 1);
+      }
+    }
+    renderAccountsModal();
+    renderAccountFilterChips();
+    updateComposerAccountSelect();
+    updateAccountsBadge();
+  }
+}
+
+function promptRenameAccount(accId, oldName) {
+  const newName = prompt('Ubah nama label akun WhatsApp:', oldName);
+  if (newName !== null && newName.trim() && newName.trim() !== oldName) {
+    const clean = newName.trim();
+    if (ws && ws.readyState === 1) {
+      ws.send(JSON.stringify({ type: 'rename_account', accountId: accId, name: clean }));
+    }
+    const acc = currentAccounts.find(a => a.id === accId);
+    if (acc) acc.name = clean;
+    renderAccountsModal();
+    renderAccountFilterChips();
+    updateComposerAccountSelect();
+  }
+}
+
+/* ==================== SCREEN & VIEW SWITCHING ==================== */
+function showScreen(name) {
+  document.getElementById('login').classList.remove('is-on');
+  document.getElementById('app').classList.remove('is-on');
+  document.getElementById(name).classList.add('is-on');
+}
+
+function showAppView(view) {
+  activeView = view;
+  const navInbox = document.getElementById('nav-inbox');
+  const navCalls = document.getElementById('nav-calls');
+  const viewInbox = document.getElementById('view-inbox');
+  const viewCalls = document.getElementById('view-calls');
+
+  if (view === 'inbox') {
+    navInbox.classList.add('on');
+    navCalls.classList.remove('on');
+    viewInbox.classList.remove('is-hidden');
+    viewCalls.classList.remove('is-active');
+  } else if (view === 'calls') {
+    navInbox.classList.remove('on');
+    navCalls.classList.add('on');
+    viewInbox.classList.add('is-hidden');
+    viewCalls.classList.add('is-active');
+    renderCalls();
+  }
+}
+
+function updateConnectionUI(state, user) {
+  const badge = document.getElementById('linkstate-badge');
+  const txt = document.getElementById('linkstate-text');
+  const connStatus = document.getElementById('connection-status');
+  const userBadge = document.getElementById('user-badge');
+
+  if (state === 'open') {
+    badge.classList.add('online');
+    const phone = user?.id ? user.id.split(':')[0] : 'Aktif';
+    txt.textContent = `Tertaut: +${phone}`;
+    connStatus.textContent = `Terhubung (+${phone})`;
+    userBadge.textContent = phone.slice(-2);
+    showScreen('app');
+  } else if (state === 'connecting') {
+    badge.classList.remove('online');
+    txt.textContent = 'Menghubungkan...';
+    connStatus.textContent = 'Menghubungkan ke WhatsApp...';
+  } else {
+    badge.classList.remove('online');
+    txt.textContent = 'Belum tertaut';
+    connStatus.textContent = 'Silakan pindai kode QR';
+  }
+}
+
+function displayQR(qrDataUrl) {
+  const loading = document.getElementById('qr-loading');
+  if (loading) loading.style.display = 'none';
+
+  const cv = document.getElementById('qr');
+  if (!cv) return;
+  const cx = cv.getContext('2d');
+  const img = new Image();
+  img.onload = () => {
+    cx.clearRect(0, 0, cv.width, cv.height);
+    cx.drawImage(img, 0, 0, cv.width, cv.height);
+  };
+  img.src = qrDataUrl;
+}
+
+/* ==================== THREADS (ROLLUP & ROLLDOWN SMOOTH SCROLL) ==================== */
+function renderThreads() {
+  const list = document.getElementById('threads');
+  const search = (document.getElementById('search-input').value || '').toLowerCase();
+
+  const totalAll = currentChats.length;
+  const totalPersonal = currentChats.filter(c => !c.isGroup).length;
+  const totalGroup = currentChats.filter(c => c.isGroup).length;
+  const totalUnread = currentChats.filter(c => (c.unread || 0) > 0).length;
+
+  document.getElementById('filter-all-num').textContent = totalAll;
+  document.getElementById('filter-personal-num').textContent = totalPersonal;
+  document.getElementById('filter-group-num').textContent = totalGroup;
+  document.getElementById('filter-unread-num').textContent = totalUnread;
+
+  const filtered = currentChats.filter(c => {
+    if (selectedAccountFilter !== 'all' && (c.accountId || 'acc_1') !== selectedAccountFilter) {
+      return false;
+    }
+
+    const matchName = (c.name || '').toLowerCase().includes(search);
+    const matchPhone = (c.phone || '').toLowerCase().includes(search);
+    if (!matchName && !matchPhone) return false;
+
+    if (currentChatFilter === 'all') return true;
+    if (currentChatFilter === 'personal') return !c.isGroup;
+    if (currentChatFilter === 'group') return c.isGroup;
+    if (currentChatFilter === 'unread') return (c.unread || 0) > 0;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div style="padding:48px 20px;text-align:center;color:var(--muted)">
+        <div style="font-size:32px;margin-bottom:10px">💬</div>
+        <b style="color:var(--ink);display:block;margin-bottom:6px;font-size:13.5px">Tidak Ada Percakapan</b>
+        <span style="font-size:12px;line-height:1.45;display:block;max-width:26ch;margin:0 auto">
+          Pesan personal dan grup yang masuk akan otomatis tampil di sini.
+        </span>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = filtered.map(c => {
+    const chatKey = c.key || c.jid;
+    const isSelected = chatKey === activeKey || (!activeKey && c.jid === activeJid);
+    const initials = (c.name || 'WA').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+    const isGroup = Boolean(c.isGroup);
+    const tagHtml = isGroup
+      ? `<span class="tag group">👥 Grup</span>`
+      : `<span class="tag personal">Personal</span>`;
+
+    const accName = c.accountName || (currentAccounts.find(a => a.id === c.accountId)?.name) || 'Admin';
+    const accBadgeHtml = `<span class="tag acc-tag" title="Nomor Admin: ${escapeHtml(accName)}">📱 ${escapeHtml(accName)}</span>`;
+
+    const isNotifOn = Boolean(c.notifyEnabled);
+    const notifBtnHtml = `
+      <button class="btn-notif-chip ${isNotifOn ? 'is-active' : 'is-muted'}" 
+              data-notif-key="${chatKey}" 
+              data-notif-jid="${c.jid}" 
+              title="${isNotifOn ? 'Notifikasi Diizinkan (Klik untuk nonaktifkan)' : 'Notifikasi Mati (Klik untuk izinkan)'}">
+        ${isNotifOn ? '🔔' : '🔕'}
+      </button>
+    `;
+
+    return `
+      <button class="thread ${isSelected ? 'on' : ''}" data-key="${chatKey}" data-jid="${c.jid}">
+        <span class="av ${isGroup ? 'group-av' : ''}">
+          ${initials}
+          <span class="ch"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2z"/></svg></span>
+        </span>
+        <span style="overflow:hidden">
+          <span class="t-top">
+            <span class="t-name">${escapeHtml(c.name || c.phone)}</span>
+            <span class="t-time">${c.lastTime || ''}</span>
+          </span>
+          <span class="t-msg">${escapeHtml(c.lastMessage || 'Tidak ada pesan')}</span>
+          <span class="t-meta">
+            ${tagHtml}
+            ${accBadgeHtml}
+            ${c.unread ? `<span class="unread">${c.unread}</span>` : ''}
+            ${notifBtnHtml}
+          </span>
+        </span>
+      </button>
+    `;
+  }).join('');
+
+  if (!activeKey && !activeJid && filtered.length > 0) {
+    selectChat(filtered[0].key || filtered[0].jid);
+  }
+}
+
+function selectChat(keyOrJid) {
+  const chat = currentChats.find(c => (c.key && c.key === keyOrJid) || c.jid === keyOrJid);
+  if (!chat) return;
+
+  activeKey = chat.key || chat.jid;
+  activeJid = chat.jid;
+  activeAccountId = chat.accountId || 'acc_1';
+
+  if (chat.unread > 0 && ws && ws.readyState === 1) {
+    ws.send(JSON.stringify({ type: 'mark_read', key: activeKey, jid: activeJid }));
+    chat.unread = 0;
+  }
+
+  renderThreads();
+  updateActiveChatHeader(chat);
+  renderMessageStream(chat);
+  updateContextSidebar(chat);
+
+  const sel = document.getElementById('composer-account-select');
+  if (sel && activeAccountId) {
+    sel.value = activeAccountId;
+  }
+}
+
+function updateActiveChatHeader(chat) {
+  const isGroup = Boolean(chat.isGroup);
+  const initials = (chat.name || 'WA').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  const avEl = document.getElementById('active-av');
+  avEl.className = 'av' + (isGroup ? ' group-av' : '');
+  document.getElementById('active-initials').textContent = initials;
+  document.getElementById('active-name').textContent = chat.name || chat.phone;
+
+  const accName = chat.accountName || (currentAccounts.find(a => a.id === chat.accountId)?.name) || 'Admin';
+  document.getElementById('active-phone').innerHTML = `
+    <span class="dot"></span> ${isGroup ? '👥 Grup WhatsApp' : 'Online · ' + chat.phone} · <span class="head-acc-badge">via ${escapeHtml(accName)}</span>
+  `;
+
+  // Update tombol izin notifikasi di header
+  const isNotifOn = Boolean(chat.notifyEnabled);
+  const btnNotif = document.getElementById('btn-toggle-notif');
+  const icon = document.getElementById('btn-toggle-notif-icon');
+  const text = document.getElementById('btn-toggle-notif-text');
+  if (isNotifOn) {
+    btnNotif.classList.add('active-notif');
+    icon.textContent = '🔔';
+    text.textContent = 'Notifikasi Aktif';
+  } else {
+    btnNotif.classList.remove('active-notif');
+    icon.textContent = '🔕';
+    text.textContent = 'Izinkan Notifikasi';
+  }
+}
+
+function toggleNotificationPermission(keyOrJid) {
+  const chat = currentChats.find(c => (c.key && c.key === keyOrJid) || c.jid === keyOrJid);
+  if (!chat) return;
+
+  const newStatus = !chat.notifyEnabled;
+  chat.notifyEnabled = newStatus;
+
+  if (newStatus && 'Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+
+  if (ws && ws.readyState === 1) {
+    ws.send(JSON.stringify({
+      type: 'toggle_notify',
+      key: chat.key || chat.jid,
+      jid: chat.jid,
+      enabled: newStatus
+    }));
+  }
+
+  renderThreads();
+  if (activeKey === chat.key || activeJid === chat.jid) {
+    updateActiveChatHeader(chat);
+    updateContextSidebar(chat);
+  }
+
+  if (newStatus) {
+    playNotificationChime();
+    showToast('Izin Diberikan', `Notifikasi pesan masuk diaktifkan untuk "${chat.name || chat.phone}"`, chat.key || chat.jid);
+  }
+}
+
+/* ==================== MESSAGE STREAM (NORMAL CHAT SIZE) ==================== */
+function renderMessageStream(chat) {
+  const stream = document.getElementById('message-stream');
+  const msgs = chat.messages || [];
+
+  if (msgs.length === 0) {
+    stream.innerHTML = `
+      <div style="margin:auto;text-align:center;color:var(--muted);padding:40px 20px">
+        <p style="margin:0;font-size:13px">Belum ada riwayat pesan untuk percakapan ini.</p>
+      </div>
+    `;
+    return;
+  }
+
+  let html = `<div class="daymark">Hari ini</div>`;
+  msgs.forEach(m => {
+    html += buildMessageHtml(m, chat.isGroup);
+  });
+
+  stream.innerHTML = html;
+  stream.scrollTop = stream.scrollHeight;
+}
+
+function appendMessageToStream(m) {
+  const stream = document.getElementById('message-stream');
+  const chat = currentChats.find(c => (c.key && c.key === activeKey) || c.jid === activeJid);
+  const div = document.createElement('div');
+  div.innerHTML = buildMessageHtml(m, chat?.isGroup);
+  if (div.firstElementChild) {
+    stream.appendChild(div.firstElementChild);
+    stream.scrollTop = stream.scrollHeight;
+  }
+}
+
+function buildMessageHtml(m, isGroup) {
+  const isOut = Boolean(m.fromMe);
+  const senderTag = (!isOut && isGroup && m.sender)
+    ? `<div class="msg-sender">${escapeHtml(m.sender)}</div>`
+    : '';
+
+  // Render Media
+  let mediaHtml = '';
+  if (m.media) {
+    if (m.media.type === 'image') {
+      mediaHtml = `
+        <div class="media-box">
+          <img class="media-img" src="${m.media.url}" alt="Foto" onclick="openLightbox('${m.media.url}')" loading="lazy" />
+        </div>
+      `;
+    } else if (m.media.type === 'video') {
+      mediaHtml = `
+        <div class="media-box">
+          <video class="media-video" controls src="${m.media.url}"></video>
+        </div>
+      `;
+    } else if (m.media.type === 'audio') {
+      mediaHtml = `
+        <div class="media-box">
+          <audio class="media-audio" controls src="${m.media.url}"></audio>
+        </div>
+      `;
+    } else if (m.media.type === 'document') {
+      mediaHtml = `
+        <div class="media-box">
+          <a class="media-doc" href="${m.media.url}" target="_blank" download>
+            <div class="doc-icon">📄</div>
+            <div class="doc-info">
+              <b>${escapeHtml(m.media.filename)}</b>
+              <span>${formatBytes(m.media.size || 0)}</span>
+            </div>
+          </a>
+        </div>
+      `;
+    } else if (m.media.type === 'sticker') {
+      mediaHtml = `
+        <div class="media-box sticker-box">
+          <img class="media-sticker" src="${m.media.url}" alt="Stiker" loading="lazy" />
+        </div>
+      `;
+    }
+  }
+
+  const textHtml = m.text ? `<div class="msg-text">${escapeHtml(m.text)}</div>` : '';
+
+  return `
+    <div class="msg ${isOut ? 'out' : 'in'}">
+      ${senderTag}
+      ${mediaHtml}
+      ${textHtml}
+      <span class="msg-meta">
+        ${m.time || ''}
+        ${isOut ? '<span class="status-tick">✓✓</span>' : ''}
+      </span>
+    </div>
+  `;
+}
+
+function updateContextSidebar(chat) {
+  if (!chat) return;
+  const initials = (chat.name || 'WA').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  document.getElementById('ctx-av').textContent = initials;
+  document.getElementById('ctx-name').textContent = chat.name || chat.phone;
+  document.getElementById('ctx-phone').textContent = chat.phone || chat.jid;
+  document.getElementById('ctx-type').textContent = chat.isGroup ? 'Grup WhatsApp' : 'Personal';
+  document.getElementById('ctx-msg-count').textContent = chat.messages ? chat.messages.length : 0;
+
+  const accName = chat.accountName || (currentAccounts.find(a => a.id === chat.accountId)?.name) || 'Admin Utama';
+  const ctxAcc = document.getElementById('ctx-account-name');
+  if (ctxAcc) ctxAcc.textContent = accName;
+
+  const switchEl = document.getElementById('ctx-notif-switch');
+  if (switchEl) {
+    switchEl.checked = Boolean(chat.notifyEnabled);
+  }
+}
+
+/* ==================== RIWAYAT PANGGILAN ==================== */
+function renderCalls() {
+  const tbody = document.getElementById('calls-tbody');
+  if (!tbody) return;
+
+  const total = currentCalls.length;
+  const missed = currentCalls.filter(c => c.status === 'missed').length;
+  const voice = currentCalls.filter(c => !c.isVideo).length;
+  const video = currentCalls.filter(c => c.isVideo).length;
+
+  document.getElementById('call-stat-total').textContent = total;
+  document.getElementById('call-stat-missed').textContent = missed;
+  document.getElementById('call-stat-voice').textContent = voice;
+  document.getElementById('call-stat-video').textContent = video;
+
+  if (missed > 0) {
+    document.getElementById('nav-calls').classList.add('has-unread');
+  } else {
+    document.getElementById('nav-calls').classList.remove('has-unread');
+  }
+
+  const filtered = currentCalls.filter(c => {
+    if (currentCallFilter === 'all') return true;
+    if (currentCallFilter === 'missed') return c.status === 'missed';
+    if (currentCallFilter === 'voice') return !c.isVideo;
+    if (currentCallFilter === 'video') return c.isVideo;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align:center;padding:48px 20px;color:var(--muted)">
+          <div style="font-size:32px;margin-bottom:8px">📞</div>
+          <b style="color:var(--ink);display:block;margin-bottom:4px">Belum Ada Riwayat Panggilan</b>
+          <span style="font-size:12.5px">Panggilan masuk dan tak terjawab dari pelanggan akan otomatis tercatat di sini.</span>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(c => {
+    const isVideo = Boolean(c.isVideo);
+    const typeLabel = isVideo ? '📹 Video' : '📞 Suara';
+
+    let statusClass = 'ringing';
+    let statusText = 'Panggilan Masuk';
+    if (c.status === 'missed') {
+      statusClass = 'missed';
+      statusText = 'Tak Terjawab (Missed)';
+    } else if (c.status === 'accepted' || c.status === 'ended') {
+      statusClass = 'accepted';
+      statusText = 'Terhubung / Selesai';
+    } else if (c.status === 'rejected') {
+      statusClass = 'rejected';
+      statusText = 'Ditolak';
+    }
+
+    const targetJid = c.chatId || c.jid;
+    const accName = c.accountName || 'Admin';
+
+    return `
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="av" style="width:34px;height:34px;font-size:11px">
+              ${(c.name || 'WA').slice(0, 2).toUpperCase()}
+            </div>
+            <div>
+              <b style="display:block;font-size:13.5px;color:var(--ink)">${escapeHtml(c.name || c.phone)}</b>
+              <span style="font-family:var(--mono);font-size:11.5px;color:var(--muted)">${c.phone || targetJid}</span>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span class="tag acc-tag" style="font-size:10px">📱 ${escapeHtml(accName)}</span>
+        </td>
+        <td><span style="font-weight:500">${typeLabel}</span></td>
+        <td><span class="call-status-badge ${statusClass}">${statusText}</span></td>
+        <td>
+          <span style="display:block;font-weight:500">${c.time || ''}</span>
+          <small style="color:var(--muted);font-family:var(--mono);font-size:11px">${c.date || ''}</small>
+        </td>
+        <td style="text-align:right">
+          <div style="display:inline-flex;gap:6px">
+            <button class="ghost" onclick="openChatFromCall('${targetJid}')" title="Buka Chat WhatsApp">
+              💬 Buka Chat
+            </button>
+            <button class="ghost danger" onclick="deleteCallEntry('${c.id}')" title="Hapus Log">
+              ✕
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function openChatFromCall(jid) {
+  showAppView('inbox');
+  const chat = currentChats.find(c => c.jid === jid);
+  if (chat) {
+    selectChat(chat.key || chat.jid);
+  } else {
+    selectChat(jid);
+  }
+}
+
+function deleteCallEntry(id) {
+  if (confirm('Hapus log panggilan ini?')) {
+    if (ws && ws.readyState === 1) {
+      ws.send(JSON.stringify({ type: 'delete_call', id }));
+    }
+    const idx = currentCalls.findIndex(c => c.id === id);
+    if (idx >= 0) currentCalls.splice(idx, 1);
+    renderCalls();
+  }
+}
+
+/* ==================== MEMBALAS PESAN & SINKRONISASI ==================== */
+function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = (input.value || '').trim();
+  if (!text || !activeJid) return;
+
+  const sel = document.getElementById('composer-account-select');
+  const targetAccountId = (sel && sel.value) ? sel.value : activeAccountId;
+
+  if (ws && ws.readyState === 1) {
+    ws.send(JSON.stringify({
+      type: 'send_message',
+      jid: activeJid,
+      text: text,
+      accountId: targetAccountId
+    }));
+    input.value = '';
+  }
+}
+
+function deleteActiveChat() {
+  if (!activeJid) return;
+  if (confirm('Yakin ingin menghapus percakapan ini dari dashboard?')) {
+    if (ws && ws.readyState === 1) {
+      ws.send(JSON.stringify({
+        type: 'delete_chat',
+        key: activeKey,
+        jid: activeJid
+      }));
+    }
+    const idx = currentChats.findIndex(c => (c.key && c.key === activeKey) || c.jid === activeJid);
+    if (idx >= 0) currentChats.splice(idx, 1);
+    activeKey = null;
+    activeJid = null;
+    renderThreads();
+    if (currentChats.length > 0) {
+      selectChat(currentChats[0].key || currentChats[0].jid);
+    }
+  }
+}
+
+/* ==================== LIGHTBOX MODAL ==================== */
+function openLightbox(url) {
+  const lb = document.getElementById('lightbox');
+  document.getElementById('lightbox-img').src = url;
+  lb.classList.add('is-open');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('is-open');
+}
+
+document.getElementById('lightbox-close').onclick = closeLightbox;
+document.getElementById('lightbox').onclick = e => {
+  if (e.target.id === 'lightbox') closeLightbox();
+};
+
+/* ==================== HELPERS ==================== */
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+/* ==================== EVENT LISTENERS ==================== */
+document.getElementById('enter').onclick = () => showScreen('app');
+document.getElementById('rail-logo').onclick = () => showAppView('inbox');
+document.getElementById('nav-inbox').onclick = () => showAppView('inbox');
+document.getElementById('nav-calls').onclick = () => showAppView('calls');
+document.getElementById('nav-accounts').onclick = () => openAccountsModal('accounts');
+document.getElementById('nav-links').onclick = () => openAccountsModal('links');
+document.getElementById('btn-open-accounts-modal').onclick = () => openAccountsModal('accounts');
+document.getElementById('btn-open-links-modal').onclick = () => openAccountsModal('links');
+document.getElementById('accounts-modal-close').onclick = closeAccountsModal;
+document.getElementById('accounts-modal').onclick = e => {
+  if (e.target.id === 'accounts-modal') closeAccountsModal();
+};
+document.getElementById('btn-cancel-qr').onclick = hideModalQr;
+
+document.getElementById('form-add-account').onsubmit = e => {
+  e.preventDefault();
+  const input = document.getElementById('input-new-account-name');
+  const name = (input.value || '').trim();
+  if (!name) return;
+
+  if (ws && ws.readyState === 1) {
+    ws.send(JSON.stringify({ type: 'add_account', name }));
+    input.value = '';
+    const qrBox = document.getElementById('modal-qr-box');
+    const loading = document.getElementById('modal-qr-loading');
+    const title = document.getElementById('modal-qr-title');
+    qrBox.style.display = 'block';
+    loading.style.display = 'flex';
+    title.textContent = `Menyiapkan QR untuk "${name}"...`;
+    const cv = document.getElementById('modal-qr-canvas');
+    const cx = cv.getContext('2d');
+    cx.clearRect(0, 0, cv.width, cv.height);
+  }
+};
+
+document.getElementById('btn-logout').onclick = () => {
+  if (confirm('Yakin ingin keluar dari dashboard ini?')) {
+    localStorage.removeItem('kuma_auth_token');
+    localStorage.removeItem('kuma_device_name');
+    isDeviceAuthenticated = false;
+    if (ws && ws.readyState === 1) {
+      ws.send(JSON.stringify({ type: 'logout' }));
+    }
+    showScreen('login');
+  }
+};
+
+function editCurrentContactName() {
+  if (!activeJid) return;
+  const chat = currentChats.find(c => (c.key && c.key === activeKey) || c.jid === activeJid);
+  if (!chat) return;
+
+  const current = chat.name || '';
+  const newName = prompt(`Ubah nama kontak (${chat.phone || chat.jid}):`, current);
+  if (newName !== null && newName.trim() && newName.trim() !== current) {
+    const clean = newName.trim();
+    chat.name = clean;
+    if (ws && ws.readyState === 1) {
+      ws.send(JSON.stringify({
+        type: 'update_chat_name',
+        key: activeKey,
+        jid: activeJid,
+        name: clean
+      }));
+    }
+    renderThreads();
+    updateActiveChatHeader(chat);
+    updateContextSidebar(chat);
+    showToast('Nama Kontak Diperbarui', `Nama berhasil diubah menjadi "${clean}"`, activeKey || activeJid);
+  }
+}
+
+document.getElementById('btn-edit-contact-name').onclick = editCurrentContactName;
+document.getElementById('btn-ctx-edit-name').onclick = editCurrentContactName;
+
+document.getElementById('btn-send').onclick = sendMessage;
+document.getElementById('chat-input').onkeydown = e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+};
+
+document.getElementById('btn-delete-chat').onclick = deleteActiveChat;
+document.getElementById('act-del-chat').onclick = deleteActiveChat;
+
+// Toggle Izin Notifikasi Header
+document.getElementById('btn-toggle-notif').onclick = () => {
+  if (activeKey || activeJid) toggleNotificationPermission(activeKey || activeJid);
+};
+
+// Toggle Izin Notifikasi Sidebar Switch
+document.getElementById('ctx-notif-switch').onchange = e => {
+  if (activeKey || activeJid) toggleNotificationPermission(activeKey || activeJid);
+};
+
+document.getElementById('act-mark-read').onclick = () => {
+  if ((activeKey || activeJid) && ws && ws.readyState === 1) {
+    ws.send(JSON.stringify({ type: 'mark_read', key: activeKey, jid: activeJid }));
+    const chat = currentChats.find(c => (c.key && c.key === activeKey) || c.jid === activeJid);
+    if (chat) chat.unread = 0;
+    renderThreads();
+  }
+};
+
+// Quick Replies
+document.querySelectorAll('.qr-btn').forEach(btn => {
+  btn.onclick = () => {
+    const input = document.getElementById('chat-input');
+    input.value = btn.dataset.msg || btn.textContent;
+    input.focus();
+  };
+});
+
+// Chat Filter Buttons
+document.querySelectorAll('.filters .chip').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.filters .chip').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    currentChatFilter = btn.dataset.filter;
+    renderThreads();
+  };
+});
+
+// Call Filter Buttons
+document.querySelectorAll('.calls-filters .chip').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.calls-filters .chip').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    currentCallFilter = btn.dataset.callfilter;
+    renderCalls();
+  };
+});
+
+document.getElementById('btn-clear-calls').onclick = () => {
+  if (confirm('Yakin ingin menghapus semua riwayat panggilan?')) {
+    if (ws && ws.readyState === 1) {
+      ws.send(JSON.stringify({ type: 'clear_calls' }));
+    }
+    currentCalls = [];
+    renderCalls();
+  }
+};
+
+// Search input
+document.getElementById('search-input').oninput = () => renderThreads();
+
+// Click thread or bell icon in list
+document.getElementById('threads').addEventListener('click', e => {
+  const notifBtn = e.target.closest('.btn-notif-chip');
+  if (notifBtn) {
+    const target = notifBtn.dataset.notifKey || notifBtn.dataset.notifJid;
+    if (target) {
+      e.stopPropagation();
+      toggleNotificationPermission(target);
+      return;
+    }
+  }
+  const btn = e.target.closest('.thread');
+  if (btn) {
+    const target = btn.dataset.key || btn.dataset.jid;
+    if (target) {
+      selectChat(target);
+    }
+  }
+});
+
+// Start WebSocket connection
+connectWS();
+fetch('/api/status').then(r => r.json()).then(st => {
+  if (st && st.localIp) {
+    serverLocalIp = st.localIp;
+    updateHostSelectorOptions();
+  }
+}).catch(() => {});
+</script>
+</body>
+</html>
